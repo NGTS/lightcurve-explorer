@@ -23,15 +23,16 @@ class VisualiseLightcurve(object):
         self.app = Flask(__name__)
 
         self.app.add_url_rule('/', 'index', self.index)
-        self.app.add_url_rule('/data', 'frms', self.frms)
-        self.app.add_url_rule('/lc/<int:lc_id>', 'lc', self.fetch_lightcurve)
-        self.app.add_url_rule('/x/<int:lc_id>', 'x', self.fetch_x)
-        self.app.add_url_rule('/y/<int:lc_id>', 'y', self.fetch_y)
-        self.app.add_url_rule('/binning', 'binning', self.fetch_binning)
-        self.app.add_url_rule('/obj_id/<int:lc_id>', 'obj_id',
-                             self.fetch_obj_id)
         self.app.add_url_rule('/view/<obj_id>', 'show',
                               self.show_object)
+
+        self.app.add_url_rule('/api/data', 'frms', self.frms)
+        self.app.add_url_rule('/api/lc/<int:lc_id>', 'lc', self.fetch_lightcurve)
+        self.app.add_url_rule('/api/x/<int:lc_id>', 'x', self.fetch_x)
+        self.app.add_url_rule('/api/y/<int:lc_id>', 'y', self.fetch_y)
+        self.app.add_url_rule('/api/binning', 'binning', self.fetch_binning)
+        self.app.add_url_rule('/api/obj_id/<int:lc_id>', 'obj_id',
+                             self.fetch_obj_id)
 
     def run(self, *args, **kwargs):
         self.app.run(*args, **kwargs)

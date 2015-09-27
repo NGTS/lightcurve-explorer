@@ -1,9 +1,9 @@
 $(function() {
-    $.getJSON('/binning', function(data) {
+    $.getJSON('/api/binning', function(data) {
         $('#binningvalue').text('Points per bin: ' + data.binning);
     });
 
-    $.getJSON('/data', function(data) {
+    $.getJSON('/api/data', function(data) {
         var options = {
             series: {
                 lines: { show: false, },

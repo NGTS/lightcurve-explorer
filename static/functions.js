@@ -8,16 +8,16 @@ function fetchFromEndpoint(endpoint, data_index, callback) {
 }
 
 function fetchLC(data_index, callback) {
-    fetchFromEndpoint('/lc', data_index, callback);
+    fetchFromEndpoint('/api/lc', data_index, callback);
 }
 
 function fetchObjID(data_index, callback) {
-    fetchFromEndpoint('/obj_id', data_index, callback);
+    fetchFromEndpoint('/api/obj_id', data_index, callback);
 }
 
 function fetchPositions(data_index, callback) {
-    fetchFromEndpoint('/x', data_index, function(x) {
-        fetchFromEndpoint('/y', data_index, function(y) {
+    fetchFromEndpoint('/api/x', data_index, function(x) {
+        fetchFromEndpoint('/api/y', data_index, function(y) {
             callback(x, y);
         });
     });
