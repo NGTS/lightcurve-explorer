@@ -30,7 +30,7 @@ $(function() {
                 fetchObjID(item.dataIndex, function(obj_id) {
                     var elem = $('#lcname');
                     elem.text('Lightcurve ' + obj_id);
-                    elem.wrap('<a href="/view/' + obj_id + '"/>');
+                    elem.wrap('<a href="/view/' + item.dataIndex + '"/>');
                 });
 
                 fetchPositions(item.dataIndex, function(x, y) {
