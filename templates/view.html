@@ -1,6 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1 id="obj_id" data-index="{{ lc_id }}"></h1>
+    <div class="row">
+        <div class="col-md-12">
+            <h1 id="obj_id" data-index="{{ lc_id }}"></h1>
+        </div>
+    </div>
+
+    <div id="plots">
+        <div class="row">
+            <div class="col-md-12">
+                <div id="lcplot" class="plot"></div>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
 {% block js %}
