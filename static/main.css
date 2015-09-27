@@ -1,0 +1,15 @@
+#plots {
+    background-color: #FAFAFA;
+    border: 1px solid #AAA;
+}
+
+.plot {
+    width: 100%;
+    height: 400px;
+}
+
+#xyplot {
+    height: 250px;
+    width: 250px;
+}
+

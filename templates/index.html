@@ -1,0 +1,42 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <title>Plot</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.js" type="text/javascript" charset="utf-8"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.navigate.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.css" title="" type="text/css" />
+        <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}" title="" type="text/css" />
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h1>Lightcurve visualiser</h1>
+                    <p id="binningvalue"></p>
+                </div>
+            </div>
+            <div id="plots">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3 id="lcname">Lightcurve</h3>
+                        <div id="lcplot" class="plot"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <h3>FRMS</h3>
+                        <div id="frmsplot" class="plot"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <h3>Chip position</h3>
+                        <div id="xyplot" class="plot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript" src="{{ url_for('static', filename='main.js') }}"></script>
+    </body>
+</html>
