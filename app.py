@@ -23,7 +23,7 @@ class VisualiseLightcurve(object):
         self.app = Flask(__name__)
 
         self.app.add_url_rule('/', 'index', self.index)
-        self.app.add_url_rule('/view/<obj_id>', 'show',
+        self.app.add_url_rule('/view/<int:lc_id>', 'show',
                               self.show_object)
 
         self.app.add_url_rule('/api/data', 'frms', self.frms)
@@ -33,6 +33,8 @@ class VisualiseLightcurve(object):
         self.app.add_url_rule('/api/binning', 'binning', self.fetch_binning)
         self.app.add_url_rule('/api/obj_id/<int:lc_id>', 'obj_id',
                              self.fetch_obj_id)
+
+        self.preload_aperture_indexes()
 
     def run(self, *args, **kwargs):
         self.app.run(*args, **kwargs)
@@ -81,10 +83,14 @@ class VisualiseLightcurve(object):
 
         return (mjd - mjd0)[~sc.mask], flux[~sc.mask]
 
-    def frms(self):
+    def preload_aperture_indexes(self):
         med_flux, frms = self.extract_data()
         self.ind = np.where((med_flux > 0) & (frms > 0))[0]
         self.aperture_indexes = np.arange(med_flux.size)
+        return med_flux, frms
+
+    def frms(self):
+        med_flux, frms = self.preload_aperture_indexes()
         return self.json_xyseries(
             np.log10(med_flux[self.ind].astype(float)),
             np.log10(frms[self.ind].astype(float)))
@@ -121,8 +127,9 @@ class VisualiseLightcurve(object):
             cat = infile['catalogue'].data
         return jsonify({'data': str(cat['obj_id'][real_lc_id])})
 
-    def show_object(self, obj_id):
-        return render_template('view.html', obj_id=obj_id)
+    def show_object(self, lc_id):
+        real_lc_id = self.aperture_indexes[self.ind][lc_id]
+        return render_template('view.html', lc_id=real_lc_id)
 
 
 
