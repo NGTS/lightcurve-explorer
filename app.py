@@ -30,7 +30,7 @@ class VisualiseLightcurve(object):
         self.app.add_url_rule('/binning', 'binning', self.fetch_binning)
         self.app.add_url_rule('/obj_id/<int:lc_id>', 'obj_id',
                              self.fetch_obj_id)
-        self.app.add_url_rule('/show/<obj_id>', 'show',
+        self.app.add_url_rule('/view/<obj_id>', 'show',
                               self.show_object)
 
     def run(self, *args, **kwargs):

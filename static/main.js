@@ -28,7 +28,9 @@ $(function() {
                 });
 
                 fetchObjID(item.dataIndex, function(obj_id) {
-                    $('#lcname').text('Lightcurve ' + obj_id);
+                    var elem = $('#lcname');
+                    elem.text('Lightcurve ' + obj_id);
+                    elem.wrap('<a href="/view/' + obj_id + '"/>');
                 });
 
                 fetchPositions(item.dataIndex, function(x, y) {
