@@ -1,28 +1,25 @@
-function fetchLC(data_index, callback) {
-    $.getJSON('/lc/' + data_index, function(data) {
-        callback(data);
+function fetchFromEndpoint(endpoint, data_index, callback) {
+    var slug = endpoint + '/' + data_index;
+    $.getJSON(slug, function(data) {
+        callback(data.data);
     }).fail(function() {
-        console.log('Cannot fetch lightcurve for object ' + data_index);
+        console.log('Cannot fetch from endpoint ' + slug);
     });
+}
+
+function fetchLC(data_index, callback) {
+    fetchFromEndpoint('/lc', data_index, callback);
 }
 
 function fetchObjID(data_index, callback) {
-    $.getJSON('/obj_id/' + data_index, function(obj_id_data) {
-        callback(obj_id_data.obj_id);
-    }).fail(function() {
-        console.log('Cannot fetch object id for object ' + data_index);
-    });
+    fetchFromEndpoint('/obj_id', data_index, callback);
 }
 
 function fetchPositions(data_index, callback) {
-    $.getJSON("/x/" + data_index, function(xdata) {
-        $.getJSON("/y/" + data_index, function(ydata) {
-            callback(xdata.data, ydata.data);
-        }).fail(function() {
-            console.log('Cannot fetch y position for object ' + data_index);
+    fetchFromEndpoint('/x', data_index, function(x) {
+        fetchFromEndpoint('/y', data_index, function(y) {
+            callback(x, y);
         });
-    }).fail(function() {
-        console.log('Cannot fetch x position for object ' + data_index);
     });
 }
 

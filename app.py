@@ -118,7 +118,7 @@ class VisualiseLightcurve(object):
         real_lc_id = self.aperture_indexes[self.ind][lc_id]
         with fits.open(self.filename) as infile:
             cat = infile['catalogue'].data
-        return jsonify({'obj_id': str(cat['obj_id'][real_lc_id])})
+        return jsonify({'data': str(cat['obj_id'][real_lc_id])})
 
     def show_object(self, obj_id):
         return 'hello world'
