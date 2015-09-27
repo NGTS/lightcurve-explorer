@@ -121,7 +121,7 @@ class VisualiseLightcurve(object):
         return jsonify({'data': str(cat['obj_id'][real_lc_id])})
 
     def show_object(self, obj_id):
-        return 'hello world'
+        return render_template('view.html', obj_id=obj_id)
 
 
 
