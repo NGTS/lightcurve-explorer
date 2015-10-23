@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, render_template
 import joblib
-from astropy.io import fits
+import fitsio
 import numpy as np
 import argparse
 from scipy import stats
@@ -12,7 +12,8 @@ from binmodule import fast_bin
 
 memory = joblib.Memory(cachedir='.tmp', verbose=0)
 
-
+def fetch_from_fits(infile, hdu, index):
+    return infile[hdu][index:index + 1, :].ravel()
 
 
 class VisualiseLightcurve(object):
@@ -40,8 +41,8 @@ class VisualiseLightcurve(object):
         self.app.run(*args, **kwargs)
 
     def extract_data(self):
-        with fits.open(self.filename) as infile:
-            flux = infile['tamflux'].data
+        with fitsio.FITS(self.filename) as infile:
+            flux = infile['tamflux'].read()
 
         if self.npts_per_bin is not None:
             flux = self.bin_by(flux)
@@ -70,9 +71,9 @@ class VisualiseLightcurve(object):
         return jsonify({'data': self.google_xyseries(*args, **kwargs)})
 
     def get_lightcurve(self, index):
-        with fits.open(self.filename) as infile:
-            mjd = infile['hjd'].data[index]
-            flux = infile['tamflux'].data[index]
+        with fitsio.FITS(self.filename) as infile:
+            mjd = fetch_from_fits(infile, 'hjd', index)
+            flux = fetch_from_fits(infile, 'tamflux', index)
 
         if self.npts_per_bin is not None:
             flux, mjd = self.bin_1d(flux, x=mjd)
@@ -107,14 +108,14 @@ class VisualiseLightcurve(object):
 
     def fetch_x(self, lc_id):
         real_lc_id = self.aperture_indexes[self.ind][lc_id]
-        with fits.open(self.filename) as infile:
-            x = infile['ccdx'].data[real_lc_id]
+        with fitsio.FITS(self.filename) as infile:
+            x = fetch_from_fits(infile, 'ccdx', real_lc_id)
         return jsonify({'data': float(np.median(x))})
 
     def fetch_y(self, lc_id):
         real_lc_id = self.aperture_indexes[self.ind][lc_id]
-        with fits.open(self.filename) as infile:
-            y = infile['ccdy'].data[real_lc_id]
+        with fitsio.FITS(self.filename) as infile:
+            y = fetch_from_fits(infile, 'ccdy', real_lc_id)
         return jsonify({'data': float(np.median(y))})
 
 
@@ -123,9 +124,10 @@ class VisualiseLightcurve(object):
 
     def fetch_obj_id(self, lc_id):
         real_lc_id = self.aperture_indexes[self.ind][lc_id]
-        with fits.open(self.filename) as infile:
-            cat = infile['catalogue'].data
-        return jsonify({'data': str(cat['obj_id'][real_lc_id])})
+        with fitsio.FITS(self.filename) as infile:
+            cat = infile['catalogue'].read()
+
+        return jsonify({'data': str(cat['OBJ_ID'][real_lc_id])})
 
     def show_object(self, lc_id):
         real_lc_id = self.aperture_indexes[self.ind][lc_id]
