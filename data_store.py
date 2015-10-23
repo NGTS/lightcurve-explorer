@@ -12,5 +12,8 @@ class DataStore(object):
         return cls(hdulist)
 
 
-    def get(self, hdu):
-        return np.array([[]])
+    def get(self, hdu, aperture=None):
+        if aperture is not None:
+            return np.array([])
+        else:
+            return np.array([[]])

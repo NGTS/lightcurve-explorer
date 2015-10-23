@@ -15,6 +15,11 @@ class TestDataStoreConstruction(object):
         assert store.hdulist == hdulist
 
 
-    def test_get_timeseries(self):
+    def test_get_array(self):
         store = DataStore.from_filename(self.fits_filename)
         assert len(store.get('flux').shape) == 2
+
+
+    def test_get_timeseries(self):
+        store = DataStore.from_filename(self.fits_filename)
+        assert len(store.get('flux', aperture=0).shape) == 1
