@@ -42,3 +42,7 @@ class TestDataStoreConstruction(object):
         store = DataStore.from_filename(self.fits_filename)
         store.get('flux', aperture=0)
         assert np.all(store._cache[('flux', 0)] == lc)
+
+    def test_bin_1d(self):
+        arr = np.array([1, 1, 2, 2])
+        assert np.all(DataStore.bin_1d(arr, 2)[0] == np.array([1, 2]))
