@@ -140,4 +140,4 @@ if __name__ == '__main__':
     parser.add_argument('filename')
     parser.add_argument('-b', '--bin', required=False, type=int)
     args = parser.parse_args()
-    VisualiseLightcurve(args).run(debug=True)
+    VisualiseLightcurve(args).run(host='0.0.0.0', debug=True)
