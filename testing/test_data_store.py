@@ -2,6 +2,7 @@ import sys
 sys.path.append('.')
 from data_store import DataStore
 import fitsio
+import numpy as np
 
 
 class TestDataStoreConstruction(object):
@@ -23,3 +24,21 @@ class TestDataStoreConstruction(object):
     def test_get_timeseries(self):
         store = DataStore.from_filename(self.fits_filename)
         assert len(store.get('flux', aperture=0).shape) == 1
+
+
+    def test_caching_array(self):
+        with fitsio.FITS(self.fits_filename) as infile:
+            flux = infile['flux'].read()
+
+        store = DataStore.from_filename(self.fits_filename)
+        store.get('flux')
+        assert np.all(store._cache[('flux', None)] == flux)
+
+
+    def test_caching_lc(self):
+        with fitsio.FITS(self.fits_filename) as infile:
+            lc = infile['flux'][0:1, :].ravel()
+
+        store = DataStore.from_filename(self.fits_filename)
+        store.get('flux', aperture=0)
+        assert np.all(store._cache[('flux', 0)] == lc)
