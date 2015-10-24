@@ -3,6 +3,10 @@ sys.path.append('.')
 from data_store import DataStore
 import fitsio
 import numpy as np
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 
 class TestDataStoreConstruction(object):
@@ -50,3 +54,10 @@ class TestDataStoreConstruction(object):
     def test_bin_2d(self):
         arr = np.array([[1, 1, 1, 1], [2, 2, 2, 2]])
         assert np.all(DataStore.bin_2d(arr, 2) == np.array([[1, 1], [2, 2]]))
+
+    def test_get_and_bin(self):
+        store = DataStore.from_filename(self.fits_filename)
+        with mock.patch.object(store, 'get') as mock_get:
+            mock_get.return_value = np.array([1, 1, 2, 2])
+            value = store.get_and_bin('not used', npts=2, aperture=0)
+        assert np.all(value[0] == np.array([1, 2]))

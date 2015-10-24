@@ -46,3 +46,10 @@ class DataStore(object):
     @staticmethod
     def bin_2d(arr, npts):
         return fast_bin(arr, npts)
+
+    def get_and_bin(self, hdu_name, npts, x=None, aperture=None):
+        data = self.get(hdu_name, aperture=aperture)
+        if aperture is not None:
+            return self.bin_1d(data, npts, x=x)
+        else:
+            return self.bin_2d(data, npts)
