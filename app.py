@@ -10,8 +10,6 @@ sys.path.append('.')
 
 from binmodule import fast_bin
 
-memory = joblib.Memory(cachedir='.tmp', verbose=0)
-
 def fetch_from_fits(infile, hdu, index):
     return infile[hdu][index:index + 1, :].ravel()
 
@@ -45,11 +43,13 @@ class VisualiseLightcurve(object):
         with fitsio.FITS(self.filename) as infile:
             flux = infile['tamflux'].read()
 
-        if self.npts_per_bin is not None:
-            flux = self.bin_by(flux)
+        sc_flux = sigma_clip(flux, axis=1)
 
-        med_flux = np.median(flux, axis=1)
-        mad_flux = np.median(np.abs(flux - med_flux[:, np.newaxis]), axis=1)
+        if self.npts_per_bin is not None:
+            sc_flux = self.bin_by(sc_flux)
+
+        med_flux = np.median(sc_flux, axis=1)
+        mad_flux = np.median(np.abs(sc_flux - med_flux[:, np.newaxis]), axis=1)
         std_flux = 1.48 * mad_flux
         frms = std_flux / med_flux
         return med_flux, frms
