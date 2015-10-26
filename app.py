@@ -33,6 +33,9 @@ class VisualiseLightcurve(object):
         self.app.add_url_rule('/api/binning', 'binning', self.fetch_binning)
         self.app.add_url_rule('/api/obj_id/<int:lc_id>', 'obj_id',
                              self.fetch_obj_id)
+        self.app.add_url_rule('/api/sysrem_basis/<int:basis_id>',
+                              'sysrem_basis',
+                              self.fetch_sysrem_basis_functions)
 
         self.preload_aperture_indexes()
 
@@ -129,6 +132,15 @@ class VisualiseLightcurve(object):
             cat = infile['catalogue'].read()
 
         return jsonify({'data': str(cat['OBJ_ID'][real_lc_id])})
+
+    def fetch_sysrem_basis_functions(self, basis_id):
+        with fitsio.FITS(self.filename) as infile:
+            imagelist = infile['imagelist'].read()
+
+        mjd = imagelist['TMID']
+        aj = imagelist['AJ'].T[basis_id]
+
+        return self.json_xyseries(mjd.astype(float), aj.astype(float))
 
     def show_object(self, lc_id):
         real_lc_id = self.aperture_indexes[self.ind][lc_id]

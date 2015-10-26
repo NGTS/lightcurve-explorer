@@ -10,11 +10,27 @@ function render_plot(elm) {
     }
 }
 
+function render_sysrem_basis(i) {
+    return function(data) {
+            var options = {
+                series: {
+                    lines: { show: false, },
+                    points: { show: true, },
+                },
+            };
+            clear_and_plot('#sysrem-' + i, data, options);
+        };
+}
+
 
 $(function() {
     $.getJSON('/api/binning', function(data) {
         $('#binningvalue').text('Points per bin: ' + data.binning);
     });
+
+    for (var i=0; i<4; i++) {
+        $.getJSON('/api/sysrem_basis/' + i, render_sysrem_basis(i));
+    }
 
     $.getJSON('/api/data', function(data) {
         var options = {

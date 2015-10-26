@@ -9,6 +9,17 @@
 </div>
 <div id="plots">
     <div class="row">
+        <div class="col-md-12">
+            <h3>Sysrem basis functions</h3>
+        </div>
+        {% for i in range(4) %}
+            <div class="col-md-3 sysrem-basis">
+                <div id="sysrem-{{ i }}" class="plot">Loading</div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="row">
         <div class="col-md-4">
             <h3 id="lcname">Tamuz Lightcurve</h3>
             <div id="lcplot" class="plot"></div>
