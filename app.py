@@ -28,7 +28,8 @@ class VisualiseLightcurve(object):
                               self.show_object)
 
         self.app.add_url_rule('/api/data', 'frms', self.frms)
-        self.app.add_url_rule('/api/lc/<int:lc_id>', 'lc', self.fetch_lightcurve)
+        self.app.add_url_rule('/api/lc/<hdu>/<int:lc_id>', 'lc',
+                              self.fetch_lightcurve)
         self.app.add_url_rule('/api/x/<int:lc_id>', 'x', self.fetch_x)
         self.app.add_url_rule('/api/y/<int:lc_id>', 'y', self.fetch_y)
         self.app.add_url_rule('/api/binning', 'binning', self.fetch_binning)
@@ -70,10 +71,10 @@ class VisualiseLightcurve(object):
     def json_xyseries(self, *args, **kwargs):
         return jsonify({'data': self.google_xyseries(*args, **kwargs)})
 
-    def get_lightcurve(self, index):
+    def get_lightcurve(self, hdu, index):
         with fitsio.FITS(self.filename) as infile:
             mjd = fetch_from_fits(infile, 'hjd', index)
-            flux = fetch_from_fits(infile, 'tamflux', index)
+            flux = fetch_from_fits(infile, hdu, index)
 
         if self.npts_per_bin is not None:
             flux, mjd = self.bin_1d(flux, x=mjd)
@@ -96,9 +97,9 @@ class VisualiseLightcurve(object):
             np.log10(med_flux[self.ind].astype(float)),
             np.log10(frms[self.ind].astype(float)))
 
-    def fetch_lightcurve(self, lc_id):
+    def fetch_lightcurve(self, hdu, lc_id):
         real_lc_id = self.aperture_indexes[self.ind][lc_id]
-        mjd, flux = self.get_lightcurve(real_lc_id)
+        mjd, flux = self.get_lightcurve(hdu, real_lc_id)
         ind = np.isfinite(flux)
         return self.json_xyseries(
             mjd[ind].astype(float), flux[ind].astype(float))

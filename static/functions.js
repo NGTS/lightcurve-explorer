@@ -7,8 +7,8 @@ function fetchFromEndpoint(endpoint, data_index, callback) {
     });
 }
 
-function fetchLC(data_index, callback) {
-    fetchFromEndpoint('/api/lc', data_index, callback);
+function fetchLC(data_index, hdu, callback) {
+    fetchFromEndpoint('/api/lc/' + hdu, data_index, callback);
 }
 
 function fetchObjID(data_index, callback) {
