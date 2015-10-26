@@ -6,7 +6,7 @@ function render_plot(elm) {
                 points: { show: true, },
             },
         };
-        $.plot(elm, [data], options);
+        clear_and_plot(elm, data, options);
     }
 }
 
@@ -26,7 +26,7 @@ $(function() {
                 clickable: true,
             },
         };
-        $.plot('#frmsplot', [data], options);
+        clear_and_plot('#frmsplot', data, options);
 
         $('#frmsplot').bind('plotclick', function(event, pos, item) {
             if (item) {
@@ -66,7 +66,7 @@ $(function() {
                         },
                     };
                     var plotdata = [[x, y]];
-                    $.plot('#xyplot', [plotdata], options);
+                    clear_and_plot('#xyplot', plotdata, options);
                 });
             }
         });

@@ -23,4 +23,7 @@ function fetchPositions(data_index, callback) {
     });
 }
 
-
+function clear_and_plot(elem, data, options) {
+    $(elem).empty();
+    $.plot(elem, [data], options);
+}
