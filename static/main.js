@@ -62,6 +62,9 @@ $(function() {
                     elem.wrap('<a href="/view/' + item.dataIndex + '"/>');
                 });
 
+                fetchFromEndpoint('/api/xs', item.dataIndex, render_plot('#xseries'));
+                fetchFromEndpoint('/api/ys', item.dataIndex, render_plot('#yseries'));
+
                 fetchPositions(item.dataIndex, function(x, y) {
                     var options = {
                         xaxis: {
