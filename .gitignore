@@ -4,3 +4,4 @@ __pycache__
 *.fits
 data/*
 !data/.gitkeep
+.ipynb_checkpoints
