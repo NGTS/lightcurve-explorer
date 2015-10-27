@@ -130,16 +130,22 @@ class VisualiseLightcurve(object):
         with fitsio.FITS(self.filename) as infile:
             mjd = fetch_from_fits(infile, 'hjd', real_lc_id)
             x = fetch_from_fits(infile, 'ccdx', real_lc_id)
+
+        sc = sigma_clip(x)
+        ind = ~sc.mask
         return self.json_xyseries(
-            mjd.astype(float), x.astype(float))
+            mjd[ind].astype(float), x[ind].astype(float))
 
     def fetch_ys(self, lc_id):
         real_lc_id = self.aperture_indexes[self.ind][lc_id]
         with fitsio.FITS(self.filename) as infile:
             mjd = fetch_from_fits(infile, 'hjd', real_lc_id)
             y = fetch_from_fits(infile, 'ccdy', real_lc_id)
+
+        sc = sigma_clip(y)
+        ind = ~sc.mask
         return self.json_xyseries(
-            mjd.astype(float), y.astype(float))
+            mjd[ind].astype(float), y[ind].astype(float))
 
     def fetch_binning(self):
         return jsonify({'binning': self.npts_per_bin})
