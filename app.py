@@ -37,6 +37,8 @@ class VisualiseLightcurve(object):
         self.app.add_url_rule('/api/sysrem_basis/<int:basis_id>',
                               'sysrem_basis',
                               self.fetch_sysrem_basis_functions)
+        self.app.add_url_rule('/api/xs/<int:lc_id>', 'xs', self.fetch_xs)
+        self.app.add_url_rule('/api/ys/<int:lc_id>', 'ys', self.fetch_ys)
 
         self.preload_aperture_indexes()
 
@@ -123,6 +125,21 @@ class VisualiseLightcurve(object):
             y = fetch_from_fits(infile, 'ccdy', real_lc_id)
         return jsonify({'data': float(np.median(y))})
 
+    def fetch_xs(self, lc_id):
+        real_lc_id = self.aperture_indexes[self.ind][lc_id]
+        with fitsio.FITS(self.filename) as infile:
+            mjd = fetch_from_fits(infile, 'hjd', real_lc_id)
+            x = fetch_from_fits(infile, 'ccdx', real_lc_id)
+        return self.json_xyseries(
+            mjd.astype(float), x.astype(float))
+
+    def fetch_ys(self, lc_id):
+        real_lc_id = self.aperture_indexes[self.ind][lc_id]
+        with fitsio.FITS(self.filename) as infile:
+            mjd = fetch_from_fits(infile, 'hjd', real_lc_id)
+            y = fetch_from_fits(infile, 'ccdy', real_lc_id)
+        return self.json_xyseries(
+            mjd.astype(float), y.astype(float))
 
     def fetch_binning(self):
         return jsonify({'binning': self.npts_per_bin})
