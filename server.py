@@ -157,6 +157,26 @@ class ObjectNameHandler(tornado.web.RequestHandler):
             self.fetch_obj_id, lc_id)
         self.write(results)
 
+class SysremBasisHandler(tornado.web.RequestHandler):
+    def fetch_basis_function(self, basis_id):
+        basis_id = int(basis_id)
+
+        with fitsio.FITS(filename) as infile:
+            imagelist = infile['imagelist'].read()
+
+        mjd = imagelist['TMID']
+        aj = imagelist['AJ'].T[basis_id]
+
+        return {'data': list(zip(mjd.astype(float), aj.astype(float)))}
+
+    @gen.coroutine
+    def get(self,  basis_id):
+        results = yield executor.submit(
+            self.fetch_basis_function, basis_id)
+        self.write(results)
+
+
+
 application = tornado.web.Application([
     (r'/', IndexHandler),
     (r'/view/([0-9]+)', DetailHandler),
@@ -166,6 +186,7 @@ application = tornado.web.Application([
     (r'/api/([xy])/([0-9]+)', MeanCoordinateHandler),
     (r'/api/([xy]s)/([0-9]+)', CoordinateHandler),
     (r'/api/obj_id/([0-9]+)', ObjectNameHandler),
+    (r'/api/sysrem_basis/([0-9]+)', SysremBasisHandler),
 ], static_path='static', debug=True)
 
 if __name__ == '__main__':
