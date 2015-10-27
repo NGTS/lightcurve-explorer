@@ -113,12 +113,38 @@ class MeanCoordinateHandler(tornado.web.RequestHandler):
             self.fetch_coordinate, coord_type, lc_id)
         self.write(results)
 
+class CoordinateHandler(tornado.web.RequestHandler):
+    def fetch_coordinate(self, coord_type, lc_id):
+        i = real_index(lc_id)
+        if coord_type == 'xs':
+            hdu = 'ccdx'
+        elif coord_type == 'ys':
+            hdu = 'ccdy'
+        else:
+            raise RuntimeError("Invalid coordinate type")
+
+        with fitsio.FITS(filename) as infile:
+            mjd = fetch_from_fits(infile, 'hjd', i)
+            value = fetch_from_fits(infile, hdu, i)
+
+        sc = sigma_clip(value)
+        ind = ~sc.mask
+        return {'data': list(zip(mjd[ind].astype(float),
+                                 value[ind].astype(float)))}
+
+    @gen.coroutine
+    def get(self, coord_type, lc_id):
+        results = yield executor.submit(
+            self.fetch_coordinate, coord_type, lc_id)
+        self.write(results)
+
 application = tornado.web.Application([
     (r'/', IndexHandler),
     # API
     (r'/api/data', FRMSHandler),
     (r'/api/lc/([a-z]+)/([0-9]+)', LightcurveHandler),
     (r'/api/([xy])/([0-9]+)', MeanCoordinateHandler),
+    (r'/api/([xy]s)/([0-9]+)', CoordinateHandler),
 ], static_path='static', debug=True)
 
 if __name__ == '__main__':
