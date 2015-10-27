@@ -131,7 +131,7 @@ class VisualiseLightcurve(object):
         with fitsio.FITS(self.filename) as infile:
             cat = infile['catalogue'].read()
 
-        return jsonify({'data': str(cat['OBJ_ID'][real_lc_id])})
+        return jsonify({'data': cat['OBJ_ID'][real_lc_id].decode('utf-8')})
 
     def fetch_sysrem_basis_functions(self, basis_id):
         with fitsio.FITS(self.filename) as infile:
