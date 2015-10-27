@@ -76,6 +76,10 @@ class IndexHandler(tornado.web.RequestHandler):
     def get(self):
         self.render('templates/index.html')
 
+class DetailHandler(tornado.web.RequestHandler):
+    def get(self, lc_id):
+        self.render('templates/view.html', file_index=lc_id)
+
 class FRMSHandler(tornado.web.RequestHandler):
     def format_frms(self):
         return {'data': list(zip(
@@ -155,6 +159,7 @@ class ObjectNameHandler(tornado.web.RequestHandler):
 
 application = tornado.web.Application([
     (r'/', IndexHandler),
+    (r'/view/([0-9]+)', DetailHandler),
     # API
     (r'/api/data', FRMSHandler),
     (r'/api/lc/([a-z]+)/([0-9]+)', LightcurveHandler),
