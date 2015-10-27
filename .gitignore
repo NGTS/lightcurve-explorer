@@ -2,3 +2,5 @@ venv
 .tmp
 __pycache__
 *.fits
+data/*
+!data/.gitkeep
