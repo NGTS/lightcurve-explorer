@@ -138,6 +138,21 @@ class CoordinateHandler(tornado.web.RequestHandler):
             self.fetch_coordinate, coord_type, lc_id)
         self.write(results)
 
+class ObjectNameHandler(tornado.web.RequestHandler):
+    def fetch_obj_id(self, lc_id):
+        i = real_index(lc_id)
+
+        with fitsio.FITS(filename) as infile:
+            cat = infile['catalogue'].read()
+
+        return {'data': cat['OBJ_ID'][i].decode('utf-8')}
+
+    @gen.coroutine
+    def get(self,  lc_id):
+        results = yield executor.submit(
+            self.fetch_obj_id, lc_id)
+        self.write(results)
+
 application = tornado.web.Application([
     (r'/', IndexHandler),
     # API
@@ -145,6 +160,7 @@ application = tornado.web.Application([
     (r'/api/lc/([a-z]+)/([0-9]+)', LightcurveHandler),
     (r'/api/([xy])/([0-9]+)', MeanCoordinateHandler),
     (r'/api/([xy]s)/([0-9]+)', CoordinateHandler),
+    (r'/api/obj_id/([0-9]+)', ObjectNameHandler),
 ], static_path='static', debug=True)
 
 if __name__ == '__main__':
