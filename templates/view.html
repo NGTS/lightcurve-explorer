@@ -2,16 +2,12 @@
 {% block content %}
     <div class="row">
         <div class="col-md-12">
-            <h1 id="obj_id" data-index="{{ lc_id }}"></h1>
+            <h1 id="obj_id" data-index="{{ file_index }}"></h1>
         </div>
     </div>
 
     <div id="plots">
-        <div class="row">
-            <div class="col-md-12">
-                <div id="lcplot" class="plot"></div>
-            </div>
-        </div>
+        {% include "plotdivs.html" %}
     </div>
 
 {% endblock %}

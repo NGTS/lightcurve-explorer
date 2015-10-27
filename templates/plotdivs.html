@@ -1,0 +1,40 @@
+    <div class="row">
+        <div class="col-md-12">
+            <h3>Sysrem basis functions</h3>
+        </div>
+        {% for i in range(4) %}
+            <div class="col-md-3 sysrem-basis">
+                <div id="sysrem-{{ i }}" class="plot">Loading</div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <h3>Tamuz Lightcurve</h3>
+            <div id="lcplot" class="plot"></div>
+        </div>
+        <div class="col-md-4">
+            <h3>CASU Lightcurve</h3>
+            <div id="casuplot" class="plot"></div>
+        </div>
+        <div class="col-md-4">
+            <h3>Raw Lightcurve</h3>
+            <div id="rawplot" class="plot"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <h3>X</h3>
+            <div id="xseries" class="plot"></div>
+        </div>
+        <div class="col-md-4">
+            <h3>Y</h3>
+            <div id="yseries" class="plot"></div>
+        </div>
+        <div class="col-md-4">
+            <h3>Chip position</h3>
+            <div id="xyplot" class="plot"></div>
+        </div>
+    </div>

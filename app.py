@@ -167,8 +167,7 @@ class VisualiseLightcurve(object):
         return self.json_xyseries(mjd.astype(float), aj.astype(float))
 
     def show_object(self, lc_id):
-        real_lc_id = self.aperture_indexes[self.ind][lc_id]
-        return render_template('view.html', lc_id=real_lc_id)
+        return render_template('view.html', file_index=lc_id)
 
 
 
