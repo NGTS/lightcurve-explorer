@@ -18,6 +18,7 @@ class VisualiseLightcurve(object):
 
     def __init__(self, args):
         self.filename = args.filename
+        self.hdu = args.hdu
         self.npts_per_bin = args.bin
         self.app = Flask(__name__)
 
@@ -44,7 +45,7 @@ class VisualiseLightcurve(object):
 
     def extract_data(self):
         with fitsio.FITS(self.filename) as infile:
-            flux = infile['tamflux'].read()
+            flux = infile[args.hdu].read()
 
         sc_flux = sigma_clip(flux, axis=1)
 
@@ -152,5 +153,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('filename')
     parser.add_argument('-b', '--bin', required=False, type=int)
+    parser.add_argument('-H', '--hdu', required=False, default='tamflux')
     args = parser.parse_args()
     VisualiseLightcurve(args).run(host='0.0.0.0', debug=True)
