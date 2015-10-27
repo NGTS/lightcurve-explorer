@@ -99,11 +99,26 @@ class LightcurveHandler(tornado.web.RequestHandler):
         mjd, flux = yield executor.submit(self.fetch_data, hdu, lc_id)
         self.write({'data': list(zip(mjd, flux))})
 
+class MeanCoordinateHandler(tornado.web.RequestHandler):
+    def fetch_coordinate(self, coord_type, lc_id):
+        i = real_index(lc_id)
+        with fitsio.FITS(filename) as infile:
+            value = fetch_from_fits(
+                infile, 'ccd{coord_type}'.format(coord_type=coord_type), i)
+        return {'data': float(np.median(value))}
+
+    @gen.coroutine
+    def get(self, coord_type, lc_id):
+        results = yield executor.submit(
+            self.fetch_coordinate, coord_type, lc_id)
+        self.write(results)
+
 application = tornado.web.Application([
     (r'/', IndexHandler),
     # API
     (r'/api/data', FRMSHandler),
     (r'/api/lc/([a-z]+)/([0-9]+)', LightcurveHandler),
+    (r'/api/([xy])/([0-9]+)', MeanCoordinateHandler),
 ], static_path='static', debug=True)
 
 if __name__ == '__main__':
