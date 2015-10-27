@@ -173,9 +173,16 @@ class VisualiseLightcurve(object):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('filename')
-    parser.add_argument('-b', '--bin', required=False, type=int)
-    parser.add_argument('-H', '--hdu', required=False, default='tamflux')
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('filename', help='File to analyse')
+    parser.add_argument('-b', '--bin', required=False, type=int,
+                        help='Number of data points to bin togther')
+    parser.add_argument('-H', '--hdu', required=False, default='tamflux',
+                        help='HDU to extract flux from')
+    parser.add_argument('-p', '--port', required=False, default=5000, type=int,
+                        help='Port to listen to')
+    parser.add_argument('--host', required=False, default='0.0.0.0',
+                        help='Host to listen to')
     args = parser.parse_args()
-    VisualiseLightcurve(args).run(host='0.0.0.0', debug=True)
+    VisualiseLightcurve(args).run(host=args.host, port=args.port, debug=True)
