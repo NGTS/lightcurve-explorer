@@ -1,11 +1,18 @@
-function render_plot(elm) {
+function render_plot(elm, colour) {
     return function(data) {
         var options = {
             series: {
                 lines: { show: false, },
-                points: { show: true, },
+                points: { show: true, lineWidth: 0 },
             },
         };
+
+        if (colour !== undefined) {
+            options.series.points.fillColor = colour;
+        } else {
+            options.series.points.fillColor = '#000';
+        }
+
         clear_and_plot(elm, data, options);
     }
 }
@@ -15,7 +22,7 @@ function render_sysrem_basis(i) {
             var options = {
                 series: {
                     lines: { show: false, },
-                    points: { show: true, },
+                    points: { show: true, fillColor: '#ff0000', lineWidth: 0},
                 },
             };
             clear_and_plot('#sysrem-' + i, data, options);
@@ -48,12 +55,14 @@ $(function() {
             if (item) {
                 var hdus = ['flux', 'tamflux', 'casudet'];
                 var elements = ['#rawplot', '#lcplot', '#casuplot'];
+                var colours = ['#ff0000', '#00ff00', '#0000ff'];
 
                 for (var i=0; i<hdus.length; i++) {
                     var hdu = hdus[i];
                     var elm = elements[i];
+                    var colour = colours[i];
 
-                    fetchLC(item.dataIndex, hdu, render_plot(elm));
+                    fetchLC(item.dataIndex, hdu, render_plot(elm, colour));
                 }
 
                 fetchObjID(item.dataIndex, function(obj_id) {
