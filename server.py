@@ -11,6 +11,7 @@ from binmodule import fast_bin
 from astropy.stats import sigma_clip
 import numpy as np
 import joblib
+from scipy.stats import binned_statistic
 
 logging.basicConfig(
     level='DEBUG', format='[%(asctime)s] %(levelname)8s %(message)s')
@@ -22,11 +23,13 @@ memory = joblib.Memory(cachedir='.tmp')
 filename = 'data/20150909-ng2000-802-custom-flat-high-quality.fits'
 npts_per_bin = 5
 
+def fetch_from_fits(infile, hdu, index):
+    return infile[hdu][index:index + 1, :].ravel()
+
 def bin_1d(flux, x=None):
     x = x if x is not None else np.arange(flux.size)
     bin_length = int(np.floor(flux.size / npts_per_bin))
-    by, be, _ = stats.binned_statistic(x, flux,
-                                        statistic='mean',
+    by, be, _ = binned_statistic(x, flux, statistic='mean',
                                         bins=bin_length)
     return by, (be[:-1] + be[1:]) / 2.
 
@@ -52,18 +55,54 @@ ind, med_flux, frms = extract_data(filename)
 aperture_indexes = np.arange(med_flux.size)
 
 def real_index(i):
-    return aperture_indexes[ind][i]
+    return int(aperture_indexes[ind][int(i)])
+
+def get_lightcurve(hdu, lc_id):
+    with fitsio.FITS(filename) as infile:
+        mjd = fetch_from_fits(infile, 'hjd', lc_id)
+        flux = fetch_from_fits(infile, hdu, lc_id)
+
+    if npts_per_bin is not None:
+        flux, mjd = bin_1d(flux, x=mjd)
+
+    mjd0 = int(mjd.min())
+
+    sc = sigma_clip(flux)
+
+    return (mjd - mjd0)[~sc.mask], flux[~sc.mask]
+
 
 class IndexHandler(tornado.web.RequestHandler):
     def get(self):
         self.render('templates/index.html')
 
+class FRMSHandler(tornado.web.RequestHandler):
+    def format_frms(self):
+        return {'data': list(zip(
+            list(np.log10(med_flux[ind].astype(float))),
+            list(np.log10(frms[ind].astype(float)))))}
+
+    @gen.coroutine
+    def get(self):
+        results = yield executor.submit(self.format_frms)
+        self.write(results)
+
 class LightcurveHandler(tornado.web.RequestHandler):
+    def fetch_data(self, hdu, lc_id):
+        i = real_index(lc_id)
+        mjd, flux = get_lightcurve(hdu, i)
+        ind = np.isfinite(flux)
+        return list(mjd[ind].astype(float)), list(flux[ind].astype(float))
+
+    @gen.coroutine
     def get(self, hdu, lc_id):
-        self.write({'hdu': hdu, 'lc_id': lc_id})
+        mjd, flux = yield executor.submit(self.fetch_data, hdu, lc_id)
+        self.write({'data': list(zip(mjd, flux))})
 
 application = tornado.web.Application([
     (r'/', IndexHandler),
+    # API
+    (r'/api/data', FRMSHandler),
     (r'/api/lc/([a-z]+)/([0-9]+)', LightcurveHandler),
 ], static_path='static', debug=True)
 
