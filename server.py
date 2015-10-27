@@ -74,7 +74,7 @@ def get_lightcurve(hdu, lc_id):
 
 class IndexHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render('templates/index.html')
+        self.render('templates/index.html', npts_per_bin=npts_per_bin)
 
 class DetailHandler(tornado.web.RequestHandler):
     def get(self, lc_id):
