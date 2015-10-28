@@ -15,8 +15,8 @@ logging.basicConfig(
     level='INFO', format='[%(asctime)s] %(levelname)8s %(message)s')
 logger = logging.getLogger(__name__)
 
-def fetch_from_fits(infile, hdu, index):
-    return infile[hdu][index:index + 1, :].ravel()
+def fetch_from_fits(infile, hdu, index, skip=20):
+    return infile[hdu][index:index + 1, skip:].ravel()
 
 
 class VisualiseLightcurve(object):
