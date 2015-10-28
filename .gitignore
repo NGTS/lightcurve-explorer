@@ -5,3 +5,4 @@ __pycache__
 data/*
 !data/.gitkeep
 .ipynb_checkpoints
+exploration/renders/*.html
