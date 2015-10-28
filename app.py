@@ -6,9 +6,14 @@ import argparse
 from scipy import stats
 from astropy.stats import sigma_clip
 import sys
+import logging
 sys.path.append('.')
 
 from binmodule import fast_bin
+
+logging.basicConfig(
+    level='INFO', format='[%(asctime)s] %(levelname)8s %(message)s')
+logger = logging.getLogger(__name__)
 
 def fetch_from_fits(infile, hdu, index):
     return infile[hdu][index:index + 1, :].ravel()
@@ -46,14 +51,17 @@ class VisualiseLightcurve(object):
         self.app.run(*args, **kwargs)
 
     def extract_data(self):
+        logger.info('Extracting data')
         with fitsio.FITS(self.filename) as infile:
             flux = infile[args.hdu].read()
 
+        logger.debug('Sigma clipping')
         sc_flux = sigma_clip(flux, axis=1)
 
         if self.npts_per_bin is not None:
             sc_flux = self.bin_by(sc_flux)
 
+        logger.debug('Computing statistics')
         med_flux = np.median(sc_flux, axis=1)
         mad_flux = np.median(np.abs(sc_flux - med_flux[:, np.newaxis]), axis=1)
         std_flux = 1.48 * mad_flux
@@ -61,6 +69,7 @@ class VisualiseLightcurve(object):
         return med_flux, frms
 
     def bin_1d(self, flux, x=None):
+        logger.debug('Binning 1d')
         x = x if x is not None else np.arange(flux.size)
         bin_length = int(np.floor(flux.size / self.npts_per_bin))
         by, be, _ = stats.binned_statistic(x, flux,
@@ -78,6 +87,8 @@ class VisualiseLightcurve(object):
         return jsonify({'data': self.google_xyseries(*args, **kwargs)})
 
     def get_lightcurve(self, hdu, index):
+        logger.info('Fetching lightcurve {hdu}:{index}'.format(
+            hdu=hdu, index=index))
         with fitsio.FITS(self.filename) as infile:
             mjd = fetch_from_fits(infile, 'hjd', index)
             flux = fetch_from_fits(infile, hdu, index)
@@ -105,6 +116,7 @@ class VisualiseLightcurve(object):
 
     def fetch_lightcurve(self, hdu, lc_id):
         real_lc_id = self.aperture_indexes[self.ind][lc_id]
+        logger.info('Fetching lightcurve %s', lc_id)
         mjd, flux = self.get_lightcurve(hdu, real_lc_id)
         ind = np.isfinite(flux)
         return self.json_xyseries(
@@ -114,18 +126,21 @@ class VisualiseLightcurve(object):
         return render_template('index.html')
 
     def fetch_x(self, lc_id):
+        logger.info('Fetching x %s', lc_id)
         real_lc_id = self.aperture_indexes[self.ind][lc_id]
         with fitsio.FITS(self.filename) as infile:
             x = fetch_from_fits(infile, 'ccdx', real_lc_id)
         return jsonify({'data': float(np.median(x))})
 
     def fetch_y(self, lc_id):
+        logger.info('Fetching y %s', lc_id)
         real_lc_id = self.aperture_indexes[self.ind][lc_id]
         with fitsio.FITS(self.filename) as infile:
             y = fetch_from_fits(infile, 'ccdy', real_lc_id)
         return jsonify({'data': float(np.median(y))})
 
     def fetch_xs(self, lc_id):
+        logger.info('Fetching xs %s', lc_id)
         real_lc_id = self.aperture_indexes[self.ind][lc_id]
         with fitsio.FITS(self.filename) as infile:
             mjd = fetch_from_fits(infile, 'hjd', real_lc_id)
@@ -137,6 +152,7 @@ class VisualiseLightcurve(object):
             mjd[ind].astype(float), x[ind].astype(float))
 
     def fetch_ys(self, lc_id):
+        logger.info('Fetching ys %s', lc_id)
         real_lc_id = self.aperture_indexes[self.ind][lc_id]
         with fitsio.FITS(self.filename) as infile:
             mjd = fetch_from_fits(infile, 'hjd', real_lc_id)
@@ -148,9 +164,11 @@ class VisualiseLightcurve(object):
             mjd[ind].astype(float), y[ind].astype(float))
 
     def fetch_binning(self):
+        logger.info('Fetching binning value')
         return jsonify({'binning': self.npts_per_bin})
 
     def fetch_obj_id(self, lc_id):
+        logger.info('Fetching obj_id %s', lc_id)
         real_lc_id = self.aperture_indexes[self.ind][lc_id]
         with fitsio.FITS(self.filename) as infile:
             cat = infile['catalogue'].read()
@@ -158,6 +176,7 @@ class VisualiseLightcurve(object):
         return jsonify({'data': cat['OBJ_ID'][real_lc_id].decode('utf-8')})
 
     def fetch_sysrem_basis_functions(self, basis_id):
+        logger.info('Fetching sysrem basis function %s', basis)
         with fitsio.FITS(self.filename) as infile:
             imagelist = infile['imagelist'].read()
 
