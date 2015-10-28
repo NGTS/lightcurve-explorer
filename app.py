@@ -207,5 +207,9 @@ if __name__ == '__main__':
                         help='Port to listen to')
     parser.add_argument('--host', required=False, default='0.0.0.0',
                         help='Host to listen to')
+    parser.add_argument('-v', '--verbose', action='store_true')
     args = parser.parse_args()
+    if args.verbose:
+        logger.setLevel('DEBUG')
+    logger.debug(args)
     VisualiseLightcurve(args).run(host=args.host, port=args.port, debug=True)
