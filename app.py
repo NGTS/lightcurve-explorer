@@ -15,7 +15,9 @@ logging.basicConfig(
     level='INFO', format='[%(asctime)s] %(levelname)8s %(message)s')
 logger = logging.getLogger(__name__)
 
-def fetch_from_fits(infile, hdu, index, skip=20):
+SKIP = 20
+
+def fetch_from_fits(infile, hdu, index, skip=SKIP):
     return infile[hdu][index:index + 1, skip:].ravel()
 
 
@@ -54,7 +56,7 @@ class VisualiseLightcurve(object):
     def extract_data(self):
         logger.info('Extracting data')
         with fitsio.FITS(self.filename) as infile:
-            flux = infile[args.hdu].read()
+            flux = infile[args.hdu][:, SKIP:]
 
         logger.debug('Sigma clipping')
         sc_flux = sigma_clip(flux, axis=1)
@@ -186,8 +188,8 @@ class VisualiseLightcurve(object):
         with fitsio.FITS(self.filename) as infile:
             imagelist = infile['imagelist'].read()
 
-        mjd = imagelist['TMID']
-        aj = imagelist['AJ'].T[basis_id]
+        mjd = imagelist['TMID'][SKIP:]
+        aj = imagelist['AJ'].T[basis_id][SKIP:]
 
         return self.json_xyseries(mjd.astype(float), aj.astype(float))
 
@@ -213,4 +215,5 @@ if __name__ == '__main__':
     if args.verbose:
         logger.setLevel('DEBUG')
     logger.debug(args)
+    logger.info('Skipping the first %s points', SKIP)
     VisualiseLightcurve(args).run(host=args.host, port=args.port, debug=True)
