@@ -48,6 +48,7 @@ class VisualiseLightcurve(object):
         self.preload_aperture_indexes()
 
     def run(self, *args, **kwargs):
+        logger.info('Listening for connections')
         self.app.run(*args, **kwargs)
 
     def extract_data(self):
