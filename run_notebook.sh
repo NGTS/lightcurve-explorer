@@ -15,7 +15,7 @@ main() {
     local readonly outname="$2"
     echo "Rendering notebook ${fname} to ${outname}"
     
-    jupyter nbconvert --execute "${fname}" --to html --stdout > "${outname}"
+    jupyter nbconvert --execute --allow-errors "${fname}" --to html --stdout > "${outname}"
 }
 
 main "$@"
