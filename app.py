@@ -182,7 +182,7 @@ class VisualiseLightcurve(object):
         return jsonify({'data': cat['OBJ_ID'][real_lc_id].decode('utf-8')})
 
     def fetch_sysrem_basis_functions(self, basis_id):
-        logger.info('Fetching sysrem basis function %s', basis)
+        logger.info('Fetching sysrem basis function %s', basis_id)
         with fitsio.FITS(self.filename) as infile:
             imagelist = infile['imagelist'].read()
 
