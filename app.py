@@ -135,9 +135,6 @@ class VisualiseLightcurve(object):
         return self.json_xyseries(
             mjd[ind].astype(float), flux[ind].astype(float))
 
-    def index(self):
-        return render_template('index.html', render_frms=True)
-
     def fetch_x(self, lc_id):
         logger.info('Fetching x %s', lc_id)
         real_lc_id = self.get_real_lc_id(lc_id)
@@ -197,6 +194,9 @@ class VisualiseLightcurve(object):
         aj = imagelist['AJ'].T[basis_id][SKIP:]
 
         return self.json_xyseries(mjd.astype(float), aj.astype(float))
+
+    def index(self):
+        return render_template('index.html', render_frms=True)
 
     def show_object(self, lc_id):
         return render_template('view.html', file_index=lc_id,
