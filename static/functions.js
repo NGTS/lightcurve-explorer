@@ -27,17 +27,7 @@ function format_float(f) {
 
 function render_coordinates(elm, colour) {
     return render_plot(elm, colour, function(data, elm, colour) {
-        /* XXX Really shitty function! */
-        var graph = $(elm);
-        var parent_elm = graph.parent();
-        var title_elm = parent_elm.children('h3');
-        var extent_elm = $('<p>Extent: ' + format_float(data.extent) + '</p>');
-
-        // Reconstruct dom
-        parent_elm.empty();
-        parent_elm.append(title_elm);
-        parent_elm.append(extent_elm);
-        parent_elm.append(graph);
+        add_text_above_graph(elm, 'Extent: ' + format_float(data.extent));
     });
 }
 
@@ -98,6 +88,19 @@ function clear_and_plot(elem, data, options) {
     $.plot(elem, [data], options);
 }
 
+function add_text_above_graph(elm, title) {
+    /* XXX Really shitty function! */
+    var graph = $(elm);
+    var parent_elm = graph.parent();
+    var title_elm = parent_elm.children('h3');
+    var text_elm = $('<p>' + title + '</p>');
+
+    // Reconstruct dom
+    parent_elm.empty();
+    parent_elm.append(title_elm);
+    parent_elm.append(text_elm);
+    parent_elm.append(graph);
+}
 
 function multi_render(index) {
     var hdus = ['flux', 'tamflux', 'casudet'];
