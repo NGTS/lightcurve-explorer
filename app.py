@@ -34,6 +34,8 @@ class VisualiseLightcurve(object):
                               self.show_object)
 
         self.app.add_url_rule('/api/data', 'frms', self.frms)
+        self.app.add_url_rule('/api/object_index/<int:lc_id>', 'object_index',
+                              self.fetch_object_index)
         self.app.add_url_rule('/api/lc/<hdu>/<int:lc_id>', 'lc',
                               self.fetch_lightcurve)
         self.app.add_url_rule('/api/x/<int:lc_id>', 'x', self.fetch_x)
@@ -120,7 +122,10 @@ class VisualiseLightcurve(object):
     def get_real_lc_id(self, lc_id):
         real_lc_id = self.aperture_indexes[self.ind][lc_id]
         logger.debug('Lightcurve %s => %s', lc_id, real_lc_id)
-        return real_lc_id
+        return int(real_lc_id)
+
+    def fetch_object_index(self, lc_id):
+        return jsonify({'index': self.get_real_lc_id(lc_id)})
 
     def fetch_lightcurve(self, hdu, lc_id):
         logger.info('Fetching lightcurve %s', lc_id)
