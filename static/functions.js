@@ -47,7 +47,7 @@ function render_sysrem_basis(i) {
 function fetchFromEndpoint(endpoint, data_index, callback) {
     var slug = endpoint + '/' + data_index;
     $.getJSON(slug, function(data) {
-        callback(data.data);
+        callback(data);
     }).fail(function() {
         console.log('Cannot fetch from endpoint ' + slug);
     });
@@ -62,9 +62,9 @@ function fetchObjID(data_index, callback) {
 }
 
 function fetchPositions(data_index, callback) {
-    fetchFromEndpoint('/api/x', data_index, function(x) {
-        fetchFromEndpoint('/api/y', data_index, function(y) {
-            callback(x, y);
+    fetchFromEndpoint('/api/x', data_index, function(xdata) {
+        fetchFromEndpoint('/api/y', data_index, function(ydata) {
+            callback(xdata.data, ydata.data);
         });
     });
 }
@@ -92,13 +92,15 @@ function multi_render(index) {
         fetchLC(index, hdu, render_plot(elm, colour));
     }
 
-    fetchObjID(index, function(obj_id) {
+    fetchObjID(index, function(data) {
+        var obj_id = data.data;
         var elem = $('#lcname');
         elem.text('Lightcurve ' + obj_id);
         elem.wrap('<a href="/view/' + index + '"/>');
     });
 
-    fetchCoordinates(index, function(coords) {
+    fetchCoordinates(index, function(data) {
+        var coords = data.data;
         var elem = $('#coordinates');
         var coord_string = coords.ra + ' ' + coords.dec + '; ' + coords.ra_hms + ' ' + coords.dec_dms;
 

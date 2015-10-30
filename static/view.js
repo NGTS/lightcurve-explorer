@@ -1,7 +1,8 @@
 $(function() {
     var lc_id = $('h1#obj_id').data('index');
 
-    fetchObjID(lc_id, function(obj_id) {
+    fetchObjID(lc_id, function(data) {
+        var obj_id = data.data;
         $('h1#obj_id').text(obj_id);
     });
 
