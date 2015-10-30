@@ -151,8 +151,14 @@ class VisualiseLightcurve(object):
         logger.info('Fetching lightcurve %s', lc_id)
         mjd, flux = self.get_lightcurve(hdu, lc_id)
         ind = np.isfinite(flux)
+        extent = float(flux[ind].ptp())
+        frms = float(flux[ind].std() / np.median(flux)) * 1000.
         return self.json_xyseries(
-            mjd[ind].astype(float), flux[ind].astype(float))
+            mjd[ind].astype(float), flux[ind].astype(float),
+            extra_keys={
+                'extent': extent,
+                'frms': frms,
+            })
 
     def fetch_x(self, lc_id):
         logger.info('Fetching x %s', lc_id)
