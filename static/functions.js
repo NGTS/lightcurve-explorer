@@ -17,6 +17,16 @@ function render_plot(elm, colour) {
     }
 }
 
+function simbad_link(ra, dec, query_radius_arcmin) {
+    if (!query_radius_arcmin) {
+        query_radius_arcmin = 30.;
+    }
+
+    var query_url = 'http://simbad.u-strasbg.fr/simbad/sim-coo?Coord=' + ra + '+' + dec + '&CooFrame=FK5&CooEpoch=2000&CooEqui=2000&CooDefinedFrames=none&Radius=' + query_radius_arcmin + '&Radius.unit=arcmin&submit=submit+query'
+    var link = '<a href="' + query_url + '">Simbad link</a>'
+    return link;
+}
+
 function render_sysrem_basis(i) {
     return function(data) {
             var options = {
@@ -55,6 +65,10 @@ function fetchPositions(data_index, callback) {
     });
 }
 
+function fetchCoordinates(data_index, callback) {
+    fetchFromEndpoint('/api/coordinates', data_index, callback);
+}
+
 function clear_and_plot(elem, data, options) {
     $(elem).empty();
     $.plot(elem, [data], options);
@@ -78,6 +92,14 @@ function multi_render(index) {
         var elem = $('#lcname');
         elem.text('Lightcurve ' + obj_id);
         elem.wrap('<a href="/view/' + index + '"/>');
+    });
+
+    fetchCoordinates(index, function(coords) {
+        var elem = $('#coordinates');
+        var coord_string = coords.ra + ' ' + coords.dec + '; ' + coords.ra_hms + ' ' + coords.dec_dms;
+
+        elem.text(coord_string);
+        elem.append('<p>' + simbad_link(coords.ra_full, coords.dec_full) + '</p>');
     });
 
     fetchFromEndpoint('/api/xs', index, render_plot('#xseries'));

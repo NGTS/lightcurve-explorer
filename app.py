@@ -7,6 +7,8 @@ from scipy import stats
 from astropy.stats import sigma_clip
 import sys
 import logging
+from astropy.coordinates import SkyCoord
+from astropy import units as u
 sys.path.append('.')
 
 from binmodule import fast_bin
@@ -19,7 +21,6 @@ SKIP = 20
 
 def fetch_from_fits(infile, hdu, index, skip=SKIP):
     return infile[hdu][index:index + 1, skip:].ravel()
-
 
 class VisualiseLightcurve(object):
 
@@ -48,6 +49,8 @@ class VisualiseLightcurve(object):
                               self.fetch_sysrem_basis_functions)
         self.app.add_url_rule('/api/xs/<int:lc_id>', 'xs', self.fetch_xs)
         self.app.add_url_rule('/api/ys/<int:lc_id>', 'ys', self.fetch_ys)
+        self.app.add_url_rule('/api/coordinates/<int:lc_id>',
+                              'coordinates', self.fetch_coordinates)
 
         self.preload_aperture_indexes()
 
@@ -188,6 +191,25 @@ class VisualiseLightcurve(object):
         aj = imagelist['AJ'].T[basis_id][SKIP:]
 
         return self.json_xyseries(mjd.astype(float), aj.astype(float))
+
+    def fetch_coordinates(self, lc_id):
+        logger.info('Fetching coordinates %s', lc_id)
+        with fitsio.FITS(self.filename) as infile:
+            cat_entry = infile['catalogue'][lc_id:lc_id + 1][0]
+
+        ra, dec = float(cat_entry['RA']), float(cat_entry['DEC'])
+        coord = SkyCoord(ra * u.degree, dec * u.degree)
+
+        ra_hms = coord.ra.to_string()
+        dec_dms = coord.dec.to_string()
+
+        return jsonify({'data': {
+            'ra': '{ra:.2f}'.format(ra=ra),
+            'dec': '{dec:.2f}'.format(dec=dec),
+            'ra_full': float(ra),
+            'dec_full': float(dec),
+            'ra_hms': ra_hms,
+            'dec_dms': dec_dms}})
 
     def index(self):
         return render_template('index.html', render_frms=True)
