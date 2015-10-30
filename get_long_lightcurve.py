@@ -81,6 +81,8 @@ def main(args):
         imagelist = infile['imagelist'].read()
         cat = infile['catalogue'].read()[ap]
 
+    sc = sigma_clip(tamflux, iters=2)
+
     header = '''
 variables available:
     * hjd
@@ -90,6 +92,7 @@ variables available:
     * skybkg
     * imagelist
     * cat
+    * sc (sigma clipped tamflux, 2 iterations)
 '''
 
     IPython.embed(header=header)
