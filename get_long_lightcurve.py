@@ -5,6 +5,11 @@ import fitsio
 import argparse
 import IPython
 import logging
+from scipy.stats import binned_statistic
+from astropy.stats import sigma_clip
+from pylab import *
+
+plt.ion()
 
 logging.basicConfig(
     level='INFO', format='[%(asctime)s] %(levelname)8s %(message)s')
