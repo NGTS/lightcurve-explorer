@@ -17,7 +17,7 @@ logging.basicConfig(
     level='INFO', format='[%(asctime)s] %(levelname)8s %(message)s')
 logger = logging.getLogger(__name__)
 
-SKIP = 20
+SKIP = 30
 
 def fetch_from_fits(infile, hdu, index, skip=SKIP):
     return infile[hdu][index:index + 1, skip:].ravel()
