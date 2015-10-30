@@ -231,8 +231,8 @@ class VisualiseLightcurve(object):
         dec_dms = coord.dec.to_string()
 
         return jsonify({'data': {
-            'ra': '{ra:.2f}'.format(ra=ra),
-            'dec': '{dec:.2f}'.format(dec=dec),
+            'ra': '{ra:.5f}'.format(ra=ra),
+            'dec': '{dec:.5f}'.format(dec=dec),
             'ra_full': float(ra),
             'dec_full': float(dec),
             'ra_hms': ra_hms,
