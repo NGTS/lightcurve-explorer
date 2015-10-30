@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 def fetch_from_fits(infile, hdu, index, skip=0):
     return infile[hdu][index:index + 1, skip:].ravel()
 
-def bin(y, nbins, x=None, statistic='median'):
+def bin(y, bins, x=None, statistic='median'):
     x = x if x is not None else np.arange(y.size)
-    by, bx, _ = binned_statistic(x, y, statistic=statistic, bins=nbins)
+    by, bx, _ = binned_statistic(x, y, statistic=statistic, bins=bins)
     return (bx[:-1] + bx[1:]) / 2., by
 
 def main(args):
