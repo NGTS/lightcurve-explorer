@@ -24,15 +24,18 @@ def bin(y, bins, x=None, statistic='median'):
     by, bx, _ = binned_statistic(x, y, statistic=statistic, bins=bins)
     return (bx[:-1] + bx[1:]) / 2., by
 
-def nightly_bin(x, y, nights, bins, statistic='median'):
+def nightly(x, y, nights):
     unique_nights = np.unique(nights)
-    out_x, out_y = [], []
     for night in unique_nights:
         ind = nights == night
-        bx, by = bin(y[ind], x=x[ind], bins=bins, statistic=statistic)
+        yield x[ind], y[ind]
+
+def nightly_bin(x, y, nights, bins, statistic='median'):
+    out_x, out_y = [], []
+    for xvals, yvals in nightly(x, y, nights):
+        bx, by = bin(yvals, x=xvals, bins=bins, statistic=statistic)
         out_x.append(bx)
         out_y.append(by)
-
     return np.array(out_x).ravel(), np.array(out_y).ravel()
 
 def period_fit(x, y, period_range, cls=LombScargleFast):
