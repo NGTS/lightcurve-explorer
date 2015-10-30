@@ -21,6 +21,26 @@ function render_plot(elm, colour, callback) {
     }
 }
 
+function format_float(f) {
+    return parseFloat(Math.round(f * 100) / 100).toFixed(2);
+}
+
+function render_coordinates(elm, colour) {
+    return render_plot(elm, colour, function(data, elm, colour) {
+        /* XXX Really shitty function! */
+        var graph = $(elm);
+        var parent_elm = graph.parent();
+        var title_elm = parent_elm.children('h3');
+        var extent_elm = $('<p>Extent: ' + format_float(data.extent) + '</p>');
+
+        // Reconstruct dom
+        parent_elm.empty();
+        parent_elm.append(title_elm);
+        parent_elm.append(extent_elm);
+        parent_elm.append(graph);
+    });
+}
+
 function simbad_link(ra, dec, query_radius_arcmin) {
     if (!query_radius_arcmin) {
         query_radius_arcmin = 30.;
@@ -108,8 +128,8 @@ function multi_render(index) {
         elem.append('<p>' + simbad_link(coords.ra_full, coords.dec_full) + '</p>');
     });
 
-    fetchFromEndpoint('/api/xs', index, render_plot('#xseries'));
-    fetchFromEndpoint('/api/ys', index, render_plot('#yseries'));
+    fetchFromEndpoint('/api/xs', index, render_coordinates('#xseries'));
+    fetchFromEndpoint('/api/ys', index, render_coordinates('#yseries'));
 
     fetchPositions(index, function(x, y) {
         var options = {
