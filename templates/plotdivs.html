@@ -9,6 +9,15 @@
         {% endfor %}
     </div>
 
+    {% if render_frms %}
+    <div class="row">
+        <div class="col-md-12">
+            <h3>FRMS</h3>
+            <div id="frmsplot" class="plot">Loading</div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="row">
         <div class="col-md-4">
             <h3>Tamuz Lightcurve</h3>
