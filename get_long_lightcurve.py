@@ -7,7 +7,7 @@ import IPython
 import logging
 from scipy.stats import binned_statistic
 from astropy.stats import sigma_clip
-from gatspy.periodic import FastLombScargle
+from gatspy.periodic import LombScargleFast
 from pylab import *
 
 plt.ion()
@@ -35,7 +35,7 @@ def nightly_bin(x, y, nights, bins, statistic='median'):
 
     return np.array(out_x).ravel(), np.array(out_y).ravel()
 
-def period_fit(x, y, period_range, cls=FastLombScargle):
+def period_fit(x, y, period_range, cls=LombScargleFast):
     model = cls(fit_period=True)
     model.optimizer.set(quiet=False, period_range=period_range)
     model.fit(x, y)
