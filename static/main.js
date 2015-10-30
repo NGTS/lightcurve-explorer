@@ -21,7 +21,9 @@ $(function() {
 
         $('#frmsplot').bind('plotclick', function(event, pos, item) {
             if (item) {
-                multi_render(item.dataIndex);
+                $.getJSON('/api/object_index/' + item.dataIndex, function(data) {
+                    multi_render(data.index);
+                });
             }
         });
 

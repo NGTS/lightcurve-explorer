@@ -129,32 +129,28 @@ class VisualiseLightcurve(object):
 
     def fetch_lightcurve(self, hdu, lc_id):
         logger.info('Fetching lightcurve %s', lc_id)
-        real_lc_id = self.get_real_lc_id(lc_id)
-        mjd, flux = self.get_lightcurve(hdu, real_lc_id)
+        mjd, flux = self.get_lightcurve(hdu, lc_id)
         ind = np.isfinite(flux)
         return self.json_xyseries(
             mjd[ind].astype(float), flux[ind].astype(float))
 
     def fetch_x(self, lc_id):
         logger.info('Fetching x %s', lc_id)
-        real_lc_id = self.get_real_lc_id(lc_id)
         with fitsio.FITS(self.filename) as infile:
-            x = fetch_from_fits(infile, 'ccdx', real_lc_id)
+            x = fetch_from_fits(infile, 'ccdx', lc_id)
         return jsonify({'data': float(np.median(x))})
 
     def fetch_y(self, lc_id):
         logger.info('Fetching y %s', lc_id)
-        real_lc_id = self.get_real_lc_id(lc_id)
         with fitsio.FITS(self.filename) as infile:
-            y = fetch_from_fits(infile, 'ccdy', real_lc_id)
+            y = fetch_from_fits(infile, 'ccdy', lc_id)
         return jsonify({'data': float(np.median(y))})
 
     def fetch_xs(self, lc_id):
         logger.info('Fetching xs %s', lc_id)
-        real_lc_id = self.get_real_lc_id(lc_id)
         with fitsio.FITS(self.filename) as infile:
-            mjd = fetch_from_fits(infile, 'hjd', real_lc_id)
-            x = fetch_from_fits(infile, 'ccdx', real_lc_id)
+            mjd = fetch_from_fits(infile, 'hjd', lc_id)
+            x = fetch_from_fits(infile, 'ccdx', lc_id)
 
         sc = sigma_clip(x)
         ind = ~sc.mask
@@ -163,10 +159,9 @@ class VisualiseLightcurve(object):
 
     def fetch_ys(self, lc_id):
         logger.info('Fetching ys %s', lc_id)
-        real_lc_id = self.get_real_lc_id(lc_id)
         with fitsio.FITS(self.filename) as infile:
-            mjd = fetch_from_fits(infile, 'hjd', real_lc_id)
-            y = fetch_from_fits(infile, 'ccdy', real_lc_id)
+            mjd = fetch_from_fits(infile, 'hjd', lc_id)
+            y = fetch_from_fits(infile, 'ccdy', lc_id)
 
         sc = sigma_clip(y)
         ind = ~sc.mask
@@ -179,11 +174,10 @@ class VisualiseLightcurve(object):
 
     def fetch_obj_id(self, lc_id):
         logger.info('Fetching obj_id %s', lc_id)
-        real_lc_id = self.get_real_lc_id(lc_id)
         with fitsio.FITS(self.filename) as infile:
             cat = infile['catalogue'].read()
 
-        return jsonify({'data': cat['OBJ_ID'][real_lc_id].decode('utf-8')})
+        return jsonify({'data': cat['OBJ_ID'][lc_id].decode('utf-8')})
 
     def fetch_sysrem_basis_functions(self, basis_id):
         logger.info('Fetching sysrem basis function %s', basis_id)
