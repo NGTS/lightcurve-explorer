@@ -41,6 +41,13 @@ def period_fit(x, y, period_range):
     model.fit(x, y)
     return model
 
+def periodogram(model, nperiods=1000):
+    period_range = model.optimizer.period_range
+    periods = np.logspace(np.log10(period_range[0]),
+                          np.log10(period_range[1]), nperiods)
+    power = model.periodogram(periods)
+    return periods, power
+
 def main(args):
     if args.verbose:
         logger.setLevel('DEBUG')
