@@ -38,6 +38,14 @@ def nightly_bin(x, y, nights, bins, statistic='median'):
         out_y.append(by)
     return np.array(out_x).ravel(), np.array(out_y).ravel()
 
+def nightly_average(x, y, nights, statistic=np.median):
+    out_x, out_y = [], []
+    for xvals, yvals in nightly(x, y, nights):
+        normalised = yvals - np.median(yvals)
+        out_x.append(xvals)
+        out_y.append(normalised)
+    return np.hstack(out_x), np.hstack(out_y)
+
 def period_fit(x, y, period_range, cls=LombScargleFast):
     model = cls(fit_period=True)
     model.optimizer.set(quiet=False, period_range=period_range)
