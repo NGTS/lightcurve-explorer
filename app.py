@@ -22,6 +22,18 @@ SKIP = 20
 def fetch_from_fits(infile, hdu, index, skip=SKIP):
     return infile[hdu][index:index + 1, skip:].ravel()
 
+
+def compute_extent(ts, percentile=5):
+    '''
+    Given a time series, compute the extent.
+
+    Return the difference between the 100 - `percentile`th and `percentile`th
+    percentiles
+    '''
+    percentiles = np.percentile(ts, [percentile, 100 - percentile])
+    return percentiles[-1] - percentiles[0]
+
+
 class VisualiseLightcurve(object):
 
     def __init__(self, args):
@@ -92,7 +104,12 @@ class VisualiseLightcurve(object):
         return list(zip(list(x), list(y)))
 
     def json_xyseries(self, *args, **kwargs):
-        return jsonify({'data': self.google_xyseries(*args, **kwargs)})
+        extra_keys = kwargs.pop('extra_keys', {})
+        out = {'data': self.google_xyseries(*args, **kwargs)}
+        if extra_keys is not None:
+            out.update(extra_keys)
+
+        return jsonify(out)
 
     def get_lightcurve(self, hdu, index):
         logger.info('Fetching lightcurve {hdu}:{index}'.format(
@@ -157,8 +174,10 @@ class VisualiseLightcurve(object):
 
         sc = sigma_clip(x)
         ind = ~sc.mask
+        extent = float(compute_extent(x[ind]))
         return self.json_xyseries(
-            mjd[ind].astype(float), x[ind].astype(float))
+            mjd[ind].astype(float), x[ind].astype(float),
+            extra_keys={'extent': extent})
 
     def fetch_ys(self, lc_id):
         logger.info('Fetching ys %s', lc_id)
@@ -168,8 +187,10 @@ class VisualiseLightcurve(object):
 
         sc = sigma_clip(y)
         ind = ~sc.mask
+        extent = float(compute_extent(y[ind]))
         return self.json_xyseries(
-            mjd[ind].astype(float), y[ind].astype(float))
+            mjd[ind].astype(float), y[ind].astype(float),
+            extra_keys={'extent': extent})
 
     def fetch_binning(self):
         logger.info('Fetching binning value')
