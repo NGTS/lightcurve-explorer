@@ -112,7 +112,9 @@ function multi_render(index) {
         var elm = elements[i];
         var colour = colours[i];
 
-        fetchLC(index, hdu, render_plot(elm, colour));
+        fetchLC(index, hdu, render_plot(elm, colour, function(data, elm, colour) {
+            add_text_above_graph(elm, 'FRMS: ' + format_float(data.frms) + ' mmag');
+        }));
     }
 
     fetchObjID(index, function(data) {
