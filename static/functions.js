@@ -1,4 +1,4 @@
-function render_plot(elm, colour) {
+function render_plot(elm, colour, callback) {
     return function(data) {
         var options = {
             series: {
@@ -14,6 +14,10 @@ function render_plot(elm, colour) {
         }
 
         clear_and_plot(elm, data, options);
+
+        if (callback) {
+            callback(data, elm, colour);
+        }
     }
 }
 
