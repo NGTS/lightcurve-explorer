@@ -35,8 +35,8 @@ def nightly_bin(x, y, nights, bins, statistic='median'):
 
     return np.array(out_x).ravel(), np.array(out_y).ravel()
 
-def period_fit(x, y, period_range):
-    model = FastLombScargle(fit_period=True)
+def period_fit(x, y, period_range, cls=FastLombScargle):
+    model = cls(fit_period=True)
     model.optimizer.set(quiet=False, period_range=period_range)
     model.fit(x, y)
     return model
