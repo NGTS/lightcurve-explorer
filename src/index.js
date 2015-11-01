@@ -2,15 +2,15 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery-browserify');
 
-var HelloWorld = React.createClass({
+var LightcurveVisualiser = React.createClass({
     render: function() {
         return (
-            <p>Hello world</p>
+            <div></div>
         );
     }
 });
 
 ReactDOM.render(
-    <HelloWorld />,
+    <LightcurveVisualiser />,
     document.getElementById('visualiser')
 );
