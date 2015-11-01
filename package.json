@@ -16,13 +16,17 @@
     "babel-preset-react": "^6.0.14",
     "babelify": "^7.1.0",
     "bower": "^1.6.5",
-    "browserify": "^12.0.1"
+    "browserify": "^12.0.1",
+    "gulp": "^3.9.0",
+    "vinyl-source-stream": "^1.1.0"
   },
   "dependencies": {
     "react": "^0.14.1",
     "react-dom": "^0.14.1"
   },
   "babel": {
-      "presets": ["react"]
+    "presets": [
+      "react"
+    ]
   }
 }
