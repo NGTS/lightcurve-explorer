@@ -13,6 +13,7 @@
   "author": "Simon Walker",
   "license": "MIT",
   "devDependencies": {
+    "babel-preset-react": "^6.0.14",
     "babelify": "^7.1.0",
     "bower": "^1.6.5",
     "browserify": "^12.0.1"
