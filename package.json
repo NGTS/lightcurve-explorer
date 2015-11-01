@@ -11,5 +11,10 @@
     "url": "ngtshead.astro:/home/sw/git/lightcurve-visualiser.git"
   },
   "author": "Simon Walker",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "babelify": "^7.1.0",
+    "bower": "^1.6.5",
+    "browserify": "^12.0.1"
+  }
 }
