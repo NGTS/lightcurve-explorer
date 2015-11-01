@@ -2,6 +2,7 @@ var gulp = require('gulp');
 var browserify = require('browserify');
 var babelify = require('babelify');
 var source = require('vinyl-source-stream');
+var watch = require('gulp-watch');
 
 gulp.task('build', function() {
     browserify({
@@ -13,4 +14,10 @@ gulp.task('build', function() {
     .bundle()
     .pipe(source('bundle.js'))
     .pipe(gulp.dest('static/js'));
+});
+
+gulp.task('default', ['build']);
+
+gulp.task('watch', function() {
+    gulp.watch('src/*.js', ['build']);
 });
