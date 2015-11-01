@@ -23,6 +23,7 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "dependencies": {
+    "jquery-browserify": "^1.8.1",
     "react": "^0.14.1",
     "react-dom": "^0.14.1"
   },
