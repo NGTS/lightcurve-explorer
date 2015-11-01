@@ -8,3 +8,4 @@ data/*
 exploration/renders/*.html
 images/*
 !images/.gitkeep
+node_modules
