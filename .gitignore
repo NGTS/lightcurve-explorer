@@ -9,3 +9,5 @@ exploration/renders/*.html
 images/*
 !images/.gitkeep
 node_modules
+static/js/*
+!static/js/.gitkeep
