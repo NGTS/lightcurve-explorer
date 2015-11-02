@@ -260,9 +260,12 @@ if __name__ == '__main__':
     parser.add_argument('--host', required=False, default='0.0.0.0',
                         help='Host to listen to')
     parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('--debug', action='store_true',
+                        help='Run the debug server')
     args = parser.parse_args()
     if args.verbose:
         logger.setLevel('DEBUG')
     logger.debug(args)
     logger.info('Skipping the first %s points', SKIP)
-    VisualiseLightcurve(args).run(host=args.host, port=args.port, debug=True)
+    VisualiseLightcurve(args).run(host=args.host, port=args.port,
+                                  debug=args.debug)
