@@ -81,6 +81,8 @@ def main(args):
         imagelist = infile['imagelist'].read()
         cat = infile['catalogue'].read()[ap]
 
+    nights = imagelist['NIGHT']
+
     sc = sigma_clip(tamflux, iters=2)
 
     header = '''
