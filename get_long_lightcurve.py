@@ -16,7 +16,7 @@ logging.basicConfig(
     level='INFO', format='[%(asctime)s] %(levelname)8s %(message)s')
 logger = logging.getLogger(__name__)
 
-def fetch_from_fits(infile, hdu, index, skip=0):
+def _fetch_from_fits(infile, hdu, index, skip=0):
     return infile[hdu][index:index + 1, skip:].ravel()
 
 def bin(y, bins, x=None, statistic='median'):
@@ -66,18 +66,18 @@ def main(args):
 
     ap = args.ap
     with fitsio.FITS(args.filename) as infile:
-        hjd = fetch_from_fits(infile, 'hjd', ap)
+        hjd = _fetch_from_fits(infile, 'hjd', ap)
         if 'TAMFLUX' in infile:
             # NGTS pipeline output
-            rawflux = fetch_from_fits(infile, 'flux', ap)
-            tamflux = fetch_from_fits(infile, 'tamflux', ap)
-            casuflux = fetch_from_fits(infile, 'casudet', ap)
+            rawflux = _fetch_from_fits(infile, 'flux', ap)
+            tamflux = _fetch_from_fits(infile, 'tamflux', ap)
+            casuflux = _fetch_from_fits(infile, 'casudet', ap)
         else:
             # Post-sysrem file
             rawflux = None
-            tamflux = fetch_from_fits(infile, 'flux', ap)
+            tamflux = _fetch_from_fits(infile, 'flux', ap)
             casuflux = None
-        skybkg = fetch_from_fits(infile, 'skybkg', ap)
+        skybkg = _fetch_from_fits(infile, 'skybkg', ap)
         imagelist = infile['imagelist'].read()
         cat = infile['catalogue'].read()[ap]
 
