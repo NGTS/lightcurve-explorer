@@ -25,7 +25,7 @@ the same information but with a url that is fixed:
 The url of this example page is `/view/14289`, matching the object id at
 the top.
 
-Also available are the objects coordinates, and a link to a simbad
+Also available are the objects coordinates, and a link to a Simbad
 search in the nearby area.
 
 #### Running the server on `ngtshead`
