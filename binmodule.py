@@ -1,10 +1,5 @@
-from joblib import Memory
 import numpy as np
 
-memory = Memory(cachedir='.tmp', verbose=0)
-
-
-# @memory.cache
 def fast_bin(flux, bin_size, bin_fn=np.average):
     nbins = np.floor(flux.shape[1] / bin_size).astype(int)
     out = np.zeros((flux.shape[0], nbins))

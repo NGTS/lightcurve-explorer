@@ -1,5 +1,4 @@
 from flask import Flask, jsonify, render_template
-import joblib
 import fitsio
 import numpy as np
 import argparse
