@@ -1,0 +1,24 @@
+{
+  "name": "lightcurve-visualiser",
+  "description": "Visualiser for NGTS lightcurves",
+  "main": "index.js",
+  "authors": [
+    "Simon Walker"
+  ],
+  "license": "MIT",
+  "moduleType": [
+    "node"
+  ],
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "Flot": "flot#~0.8.3"
+  }
+}

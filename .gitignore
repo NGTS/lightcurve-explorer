@@ -11,3 +11,4 @@ images/*
 node_modules
 static/js/*
 !static/js/.gitkeep
+bower_components
