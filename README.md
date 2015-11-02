@@ -146,3 +146,13 @@ forwarding](#port-forwarding), this interactive tool when run on a
 remote machine requires X forwarding. This is achieved with the `-X`
 flag to ssh, but *cannot* be set up from another terminal or through the
 ssh magic key combination.
+
+### Local requirements
+
+If you wish to run this code locally, e.g. if you have the data already
+then the following packages are required, **in addition to the packages
+required for the server**:
+
+* ipython
+* gatspy
+* supersmoother
