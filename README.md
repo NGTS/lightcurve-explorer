@@ -1,4 +1,4 @@
-# Lightcurve visualiser
+# Lightcurve explorer
 
 This code allows easy exploration of NGTS lightcurves, by picking
 objects from their bulk noise properties.
