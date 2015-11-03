@@ -234,6 +234,17 @@ class EquatorialCoordinateHandler(BaseHandler):
         self.write(results)
 
 
+class SkyBackgroundHandler(BaseHandler):
+    def fetch_data(self, lc_id):
+        mjd, sky = self.get_lightcurve('skybkg', lc_id)
+        ind = np.isfinite(sky)
+        return mjd[ind].astype(float), sky[ind].astype(float)
+
+    @gen.coroutine
+    def get(self, lc_id):
+        mjd, sky = yield executor.submit(self.fetch_data, lc_id)
+        self.write({'data': list(zip(mjd, sky))})
+
 def construct_application(args, ind, med_flux, frms, aperture_indexes):
     url_mapping = [
         (r'/', IndexHandler),
@@ -247,6 +258,7 @@ def construct_application(args, ind, med_flux, frms, aperture_indexes):
         (r'/api/obj_id/([0-9]+)', ObjectNameHandler),
         (r'/api/sysrem_basis/([0-9]+)', SysremBasisHandler),
         (r'/api/coordinates/([0-9]+)', EquatorialCoordinateHandler),
+        (r'/api/skybkg/([0-9]+)', SkyBackgroundHandler),
     ]
 
     constructor_params = {

@@ -158,4 +158,6 @@ function multi_render(index) {
         var plotdata = [[x, y]];
         clear_and_plot('#xyplot', plotdata, options);
     });
+
+    fetchFromEndpoint('/api/skybkg', index, render_plot('#skybkg', 'cyan'));
 }
