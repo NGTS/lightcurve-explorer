@@ -24,7 +24,13 @@ var SysremBasisFunction = React.createClass({
     },
 
     componentDidUpdate: function() {
-        plot('#sysrem-' + this.props.index, [this.state.data], {});
+        var options = {
+            series: {
+                lines: { show: false, },
+                points: { show: true, fillColor: '#ff0000', lineWidth: 0},
+            },
+        };
+        plot('#sysrem-' + this.props.index, [this.state.data], options);
     },
 
     render: function() {
