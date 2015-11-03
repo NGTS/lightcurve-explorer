@@ -1,6 +1,8 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery-browserify');
+var plot = require('./flot-shim');
+
 
 var SysremBasisFunction = React.createClass({
     getInitialState: function() {
