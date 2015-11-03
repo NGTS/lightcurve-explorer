@@ -48,7 +48,7 @@ def bin_1d(flux, x=None):
     return by, (be[:-1] + be[1:]) / 2.
 
 @memory.cache
-def extract_data(filename):
+def extract_data(filename, npts_per_bin):
     logger.info('Loading data')
     with fitsio.FITS(filename) as infile:
         flux = infile['tamflux'].read()
@@ -65,11 +65,6 @@ def extract_data(filename):
     ind = np.where((med_flux > 0) & (frms > 0))[0]
     return ind, med_flux, frms
 
-ind, med_flux, frms = extract_data(filename)
-aperture_indexes = np.arange(med_flux.size)
-
-def real_index(i):
-    return int(aperture_indexes[ind][int(i)])
 
 def get_lightcurve(hdu, lc_id):
     with fitsio.FITS(filename) as infile:
@@ -86,8 +81,14 @@ def get_lightcurve(hdu, lc_id):
     return (mjd - mjd0)[~sc.mask], flux[~sc.mask]
 
 class BaseHandler(tornado.web.RequestHandler):
-    def initialize(self, args):
+    def initialize(self, args, aperture_indexes, ind,
+                  frms, med_flux):
         self.args = args
+        self.aperture_indexes = aperture_indexes
+        self.ind = ind
+        self.frms = frms
+        self.med_flux = med_flux
+
 
 class IndexHandler(BaseHandler):
     def get(self):
@@ -100,14 +101,17 @@ class DetailHandler(BaseHandler):
                    render_frms=False)
 
 class ObjectIndexHandler(BaseHandler):
+    def real_index(self, i):
+        return int(self.aperture_indexes[self.ind][int(i)])
+
     def get(self, lc_id):
-        self.write({'index': real_index(lc_id)})
+        self.write({'index': self.real_index(lc_id)})
 
 class FRMSHandler(BaseHandler):
     def format_frms(self):
         return {'data': list(zip(
-            list(np.log10(med_flux[ind].astype(float))),
-            list(np.log10(frms[ind].astype(float)))))}
+            list(np.log10(self.med_flux[self.ind].astype(float))),
+            list(np.log10(self.frms[self.ind].astype(float)))))}
 
     @gen.coroutine
     def get(self):
@@ -230,7 +234,7 @@ class EquatorialCoordinateHandler(BaseHandler):
         self.write(results)
 
 
-def construct_application(args):
+def construct_application(args, ind, med_flux, frms, aperture_indexes):
     url_mapping = [
         (r'/', IndexHandler),
         (r'/view/([0-9]+)', DetailHandler),
@@ -244,10 +248,19 @@ def construct_application(args):
         (r'/api/sysrem_basis/([0-9]+)', SysremBasisHandler),
         (r'/api/coordinates/([0-9]+)', EquatorialCoordinateHandler),
     ]
+
+    constructor_params = {
+        'args': args,
+        'aperture_indexes': aperture_indexes,
+        'ind': ind,
+        'frms': frms,
+        'med_flux': med_flux,
+    }
+
     application = tornado.web.Application([
-        (route, handler, {'args': args})
+        (route, handler, constructor_params)
         for (route, handler) in url_mapping
-    ], static_path='static', debug=True)
+    ], static_path='static', debug=args.debug)
     return application
 
 if __name__ == '__main__':
@@ -270,7 +283,11 @@ if __name__ == '__main__':
         logger.setLevel('DEBUG')
     logger.debug(args)
 
+    ind, med_flux, frms = extract_data(args.filename, npts_per_bin=args.bin)
+    aperture_indexes = np.arange(med_flux.size)
+
     logger.info('Application listening on port %s', args.port)
-    application = construct_application(args)
+    application = construct_application(args, ind, med_flux, frms,
+                                        aperture_indexes)
     application.listen(args.port)
     tornado.ioloop.IOLoop().current().start()
