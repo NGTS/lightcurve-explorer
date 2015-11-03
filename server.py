@@ -151,7 +151,7 @@ class ObjectNameHandler(tornado.web.RequestHandler):
         with fitsio.FITS(filename) as infile:
             cat = infile['catalogue'].read()
 
-        return {'data': cat['OBJ_ID'][lc_id].decode('utf-8')}
+        return {'data': cat['OBJ_ID'][int(lc_id)].decode('utf-8')}
 
     @gen.coroutine
     def get(self,  lc_id):
