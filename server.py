@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 executor = concurrent.futures.ThreadPoolExecutor()
 memory = joblib.Memory(cachedir='.tmp')
 
+SKIP = 30
+
 def compute_extent(ts, percentile=5):
     '''
     Given a time series, compute the extent.
@@ -35,7 +37,7 @@ def compute_extent(ts, percentile=5):
 
 def fetch_from_fits(infile, hdu, index):
     index = int(index)
-    return infile[hdu][index:index + 1, :].ravel()
+    return infile[hdu][index:index + 1, SKIP:].ravel()
 
 def bin_1d(flux, npts_per_bin, x=None):
     x = x if x is not None else np.arange(flux.size)
@@ -48,7 +50,7 @@ def bin_1d(flux, npts_per_bin, x=None):
 def extract_data(filename, npts_per_bin=None):
     logger.info('Loading data')
     with fitsio.FITS(filename) as infile:
-        flux = infile['tamflux'].read()
+        flux = infile[args.hdu][:, SKIP:]
 
     sc_flux = sigma_clip(flux, axis=1)
 
@@ -195,8 +197,8 @@ class SysremBasisHandler(BaseHandler):
         with fitsio.FITS(self.filename) as infile:
             imagelist = infile['imagelist'].read()
 
-        mjd = imagelist['TMID']
-        aj = imagelist['AJ'].T[basis_id]
+        mjd = imagelist['TMID'][SKIP:]
+        aj = imagelist['AJ'].T[basis_id][SKIP:]
 
         return {'data': list(zip(mjd.astype(float), aj.astype(float)))}
 
@@ -281,6 +283,7 @@ if __name__ == '__main__':
         logger.setLevel('DEBUG')
     logger.debug(args)
 
+    logger.info('Skipping the first %s points', SKIP)
     ind, med_flux, frms = extract_data(args.filename, npts_per_bin=args.bin)
     aperture_indexes = np.arange(med_flux.size)
 
