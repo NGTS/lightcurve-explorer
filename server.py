@@ -24,6 +24,7 @@ filename = 'data/20150911-ng2000-802-custom-flat-high-quality.fits'
 npts_per_bin = 100
 
 def fetch_from_fits(infile, hdu, index):
+    index = int(index)
     return infile[hdu][index:index + 1, :].ravel()
 
 def bin_1d(flux, x=None):
@@ -82,6 +83,10 @@ class DetailHandler(tornado.web.RequestHandler):
         self.render('templates/view.html', file_index=lc_id,
                    render_frms=False)
 
+class ObjectIndexHandler(tornado.web.RequestHandler):
+    def get(self, lc_id):
+        self.write({'index': real_index(lc_id)})
+
 class FRMSHandler(tornado.web.RequestHandler):
     def format_frms(self):
         return {'data': list(zip(
@@ -95,8 +100,7 @@ class FRMSHandler(tornado.web.RequestHandler):
 
 class LightcurveHandler(tornado.web.RequestHandler):
     def fetch_data(self, hdu, lc_id):
-        i = real_index(lc_id)
-        mjd, flux = get_lightcurve(hdu, i)
+        mjd, flux = get_lightcurve(hdu, lc_id)
         ind = np.isfinite(flux)
         return list(mjd[ind].astype(float)), list(flux[ind].astype(float))
 
@@ -107,10 +111,9 @@ class LightcurveHandler(tornado.web.RequestHandler):
 
 class MeanCoordinateHandler(tornado.web.RequestHandler):
     def fetch_coordinate(self, coord_type, lc_id):
-        i = real_index(lc_id)
         with fitsio.FITS(filename) as infile:
             value = fetch_from_fits(
-                infile, 'ccd{coord_type}'.format(coord_type=coord_type), i)
+                infile, 'ccd{coord_type}'.format(coord_type=coord_type), lc_id)
         return {'data': float(np.median(value))}
 
     @gen.coroutine
@@ -121,7 +124,6 @@ class MeanCoordinateHandler(tornado.web.RequestHandler):
 
 class CoordinateHandler(tornado.web.RequestHandler):
     def fetch_coordinate(self, coord_type, lc_id):
-        i = real_index(lc_id)
         if coord_type == 'xs':
             hdu = 'ccdx'
         elif coord_type == 'ys':
@@ -130,8 +132,8 @@ class CoordinateHandler(tornado.web.RequestHandler):
             raise RuntimeError("Invalid coordinate type")
 
         with fitsio.FITS(filename) as infile:
-            mjd = fetch_from_fits(infile, 'hjd', i)
-            value = fetch_from_fits(infile, hdu, i)
+            mjd = fetch_from_fits(infile, 'hjd', lc_id)
+            value = fetch_from_fits(infile, hdu, lc_id)
 
         sc = sigma_clip(value)
         ind = ~sc.mask
@@ -146,12 +148,10 @@ class CoordinateHandler(tornado.web.RequestHandler):
 
 class ObjectNameHandler(tornado.web.RequestHandler):
     def fetch_obj_id(self, lc_id):
-        i = real_index(lc_id)
-
         with fitsio.FITS(filename) as infile:
             cat = infile['catalogue'].read()
 
-        return {'data': cat['OBJ_ID'][i].decode('utf-8')}
+        return {'data': cat['OBJ_ID'][lc_id].decode('utf-8')}
 
     @gen.coroutine
     def get(self,  lc_id):
@@ -183,6 +183,7 @@ application = tornado.web.Application([
     (r'/', IndexHandler),
     (r'/view/([0-9]+)', DetailHandler),
     # API
+    (r'/api/object_index/([0-9]+)', ObjectIndexHandler),
     (r'/api/data', FRMSHandler),
     (r'/api/lc/([a-z]+)/([0-9]+)', LightcurveHandler),
     (r'/api/([xy])/([0-9]+)', MeanCoordinateHandler),
