@@ -14,6 +14,7 @@ from astropy import units as u
 import numpy as np
 import joblib
 from scipy.stats import binned_statistic
+import argparse
 
 logging.basicConfig(
     level='DEBUG', format='[%(asctime)s] %(levelname)8s %(message)s')
@@ -84,22 +85,25 @@ def get_lightcurve(hdu, lc_id):
 
     return (mjd - mjd0)[~sc.mask], flux[~sc.mask]
 
+class BaseHandler(tornado.web.RequestHandler):
+    def initialize(self, args):
+        self.args = args
 
-class IndexHandler(tornado.web.RequestHandler):
+class IndexHandler(BaseHandler):
     def get(self):
         self.render('templates/index.html', npts_per_bin=npts_per_bin,
                    render_frms=True)
 
-class DetailHandler(tornado.web.RequestHandler):
+class DetailHandler(BaseHandler):
     def get(self, lc_id):
         self.render('templates/view.html', file_index=lc_id,
                    render_frms=False)
 
-class ObjectIndexHandler(tornado.web.RequestHandler):
+class ObjectIndexHandler(BaseHandler):
     def get(self, lc_id):
         self.write({'index': real_index(lc_id)})
 
-class FRMSHandler(tornado.web.RequestHandler):
+class FRMSHandler(BaseHandler):
     def format_frms(self):
         return {'data': list(zip(
             list(np.log10(med_flux[ind].astype(float))),
@@ -110,7 +114,7 @@ class FRMSHandler(tornado.web.RequestHandler):
         results = yield executor.submit(self.format_frms)
         self.write(results)
 
-class LightcurveHandler(tornado.web.RequestHandler):
+class LightcurveHandler(BaseHandler):
     def fetch_data(self, hdu, lc_id):
         mjd, flux = get_lightcurve(hdu, lc_id)
         ind = np.isfinite(flux)
@@ -128,7 +132,7 @@ class LightcurveHandler(tornado.web.RequestHandler):
             'frms': frms,
         })
 
-class MeanCoordinateHandler(tornado.web.RequestHandler):
+class MeanCoordinateHandler(BaseHandler):
     def fetch_coordinate(self, coord_type, lc_id):
         with fitsio.FITS(filename) as infile:
             value = fetch_from_fits(
@@ -141,7 +145,7 @@ class MeanCoordinateHandler(tornado.web.RequestHandler):
             self.fetch_coordinate, coord_type, lc_id)
         self.write(results)
 
-class CoordinateHandler(tornado.web.RequestHandler):
+class CoordinateHandler(BaseHandler):
     def fetch_coordinate(self, coord_type, lc_id):
         if coord_type == 'xs':
             hdu = 'ccdx'
@@ -169,7 +173,7 @@ class CoordinateHandler(tornado.web.RequestHandler):
             self.fetch_coordinate, coord_type, lc_id)
         self.write(results)
 
-class ObjectNameHandler(tornado.web.RequestHandler):
+class ObjectNameHandler(BaseHandler):
     def fetch_obj_id(self, lc_id):
         with fitsio.FITS(filename) as infile:
             cat = infile['catalogue'].read()
@@ -182,7 +186,7 @@ class ObjectNameHandler(tornado.web.RequestHandler):
             self.fetch_obj_id, lc_id)
         self.write(results)
 
-class SysremBasisHandler(tornado.web.RequestHandler):
+class SysremBasisHandler(BaseHandler):
     def fetch_basis_function(self, basis_id):
         basis_id = int(basis_id)
 
@@ -200,7 +204,7 @@ class SysremBasisHandler(tornado.web.RequestHandler):
             self.fetch_basis_function, basis_id)
         self.write(results)
 
-class EquatorialCoordinateHandler(tornado.web.RequestHandler):
+class EquatorialCoordinateHandler(BaseHandler):
     def fetch_coordinates(self, lc_id):
         with fitsio.FITS(filename) as infile:
             cat_entry = infile['catalogue'][lc_id:lc_id + 1][0]
@@ -226,22 +230,47 @@ class EquatorialCoordinateHandler(tornado.web.RequestHandler):
         self.write(results)
 
 
-application = tornado.web.Application([
-    (r'/', IndexHandler),
-    (r'/view/([0-9]+)', DetailHandler),
-    # API
-    (r'/api/object_index/([0-9]+)', ObjectIndexHandler),
-    (r'/api/data', FRMSHandler),
-    (r'/api/lc/([a-z]+)/([0-9]+)', LightcurveHandler),
-    (r'/api/([xy])/([0-9]+)', MeanCoordinateHandler),
-    (r'/api/([xy]s)/([0-9]+)', CoordinateHandler),
-    (r'/api/obj_id/([0-9]+)', ObjectNameHandler),
-    (r'/api/sysrem_basis/([0-9]+)', SysremBasisHandler),
-    (r'/api/coordinates/([0-9]+)', EquatorialCoordinateHandler),
-], static_path='static', debug=True)
+def construct_application(args):
+    url_mapping = [
+        (r'/', IndexHandler),
+        (r'/view/([0-9]+)', DetailHandler),
+        # API
+        (r'/api/object_index/([0-9]+)', ObjectIndexHandler),
+        (r'/api/data', FRMSHandler),
+        (r'/api/lc/([a-z]+)/([0-9]+)', LightcurveHandler),
+        (r'/api/([xy])/([0-9]+)', MeanCoordinateHandler),
+        (r'/api/([xy]s)/([0-9]+)', CoordinateHandler),
+        (r'/api/obj_id/([0-9]+)', ObjectNameHandler),
+        (r'/api/sysrem_basis/([0-9]+)', SysremBasisHandler),
+        (r'/api/coordinates/([0-9]+)', EquatorialCoordinateHandler),
+    ]
+    application = tornado.web.Application([
+        (route, handler, {'args': args})
+        for (route, handler) in url_mapping
+    ], static_path='static', debug=True)
+    return application
 
 if __name__ == '__main__':
-    port = 5000
-    application.listen(port)
-    logger.info('Application listening on port %s', port)
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('filename', help='File to analyse')
+    parser.add_argument('-b', '--bin', required=False, type=int,
+                        help='Number of data points to bin togther')
+    parser.add_argument('-H', '--hdu', required=False, default='tamflux',
+                        help='HDU to extract flux from')
+    parser.add_argument('-p', '--port', required=False, default=5000, type=int,
+                        help='Port to listen to')
+    parser.add_argument('--host', required=False, default='0.0.0.0',
+                        help='Host to listen to')
+    parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('--debug', action='store_true',
+                        help='Run the debug server')
+    args = parser.parse_args()
+    if args.verbose:
+        logger.setLevel('DEBUG')
+    logger.debug(args)
+
+    logger.info('Application listening on port %s', args.port)
+    application = construct_application(args)
+    application.listen(args.port)
     tornado.ioloop.IOLoop().current().start()
