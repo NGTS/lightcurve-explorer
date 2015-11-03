@@ -23,6 +23,16 @@ memory = joblib.Memory(cachedir='.tmp')
 filename = 'data/20150911-ng2000-802-custom-flat-high-quality.fits'
 npts_per_bin = 100
 
+def compute_extent(ts, percentile=5):
+    '''
+    Given a time series, compute the extent.
+
+    Return the difference between the 100 - `percentile`th and `percentile`th
+    percentiles
+    '''
+    percentiles = np.percentile(ts, [percentile, 100 - percentile])
+    return percentiles[-1] - percentiles[0]
+
 def fetch_from_fits(infile, hdu, index):
     index = int(index)
     return infile[hdu][index:index + 1, :].ravel()
@@ -102,12 +112,19 @@ class LightcurveHandler(tornado.web.RequestHandler):
     def fetch_data(self, hdu, lc_id):
         mjd, flux = get_lightcurve(hdu, lc_id)
         ind = np.isfinite(flux)
-        return list(mjd[ind].astype(float)), list(flux[ind].astype(float))
+        return mjd[ind].astype(float), flux[ind].astype(float)
 
     @gen.coroutine
     def get(self, hdu, lc_id):
         mjd, flux = yield executor.submit(self.fetch_data, hdu, lc_id)
-        self.write({'data': list(zip(mjd, flux))})
+        ind = np.isfinite(flux)
+        extent = float(flux[ind].ptp())
+        frms = float(flux[ind].std() / np.median(flux)) * 1000.
+        self.write({
+            'data': list(zip(mjd, flux)),
+            'extent': extent,
+            'frms': frms,
+        })
 
 class MeanCoordinateHandler(tornado.web.RequestHandler):
     def fetch_coordinate(self, coord_type, lc_id):
@@ -137,8 +154,12 @@ class CoordinateHandler(tornado.web.RequestHandler):
 
         sc = sigma_clip(value)
         ind = ~sc.mask
-        return {'data': list(zip(mjd[ind].astype(float),
-                                 value[ind].astype(float)))}
+        extent = float(compute_extent(sc[ind]))
+        return {
+            'data': list(zip(mjd[ind].astype(float),
+                             value[ind].astype(float))),
+            'extent': extent,
+        }
 
     @gen.coroutine
     def get(self, coord_type, lc_id):
