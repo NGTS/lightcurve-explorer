@@ -59,8 +59,10 @@ var LightcurveVisualiser = React.createClass({
     render: function() {
         return (
             <div className="lightcurve-visualiser">
-            <h1>Lightcurve visualiser</h1>
-            <SysremBasisFunctions />
+                <h1>Lightcurve visualiser</h1>
+                <div id="plots">
+                    <SysremBasisFunctions />
+                </div>
             </div>
         );
     }
