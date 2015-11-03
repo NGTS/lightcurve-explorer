@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 executor = concurrent.futures.ThreadPoolExecutor()
 memory = joblib.Memory(cachedir='.tmp')
 
-filename = 'data/20150909-ng2000-802-custom-flat-high-quality.fits'
-npts_per_bin = 5
+filename = 'data/20150911-ng2000-802-custom-flat-high-quality.fits'
+npts_per_bin = 100
 
 def fetch_from_fits(infile, hdu, index):
     return infile[hdu][index:index + 1, :].ravel()
@@ -74,11 +74,13 @@ def get_lightcurve(hdu, lc_id):
 
 class IndexHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render('templates/index.html', npts_per_bin=npts_per_bin)
+        self.render('templates/index.html', npts_per_bin=npts_per_bin,
+                   render_frms=True)
 
 class DetailHandler(tornado.web.RequestHandler):
     def get(self, lc_id):
-        self.render('templates/view.html', file_index=lc_id)
+        self.render('templates/view.html', file_index=lc_id,
+                   render_frms=False)
 
 class FRMSHandler(tornado.web.RequestHandler):
     def format_frms(self):
