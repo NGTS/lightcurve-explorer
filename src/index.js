@@ -19,12 +19,12 @@ var SysremBasisFunction = React.createClass({
         if (!this.state.data) {
             return <p>Loading</p>;
         } else {
-            return <div id={"sysrem-" + this.props.index}></div>;
+            return <div className="plot" id={"sysrem-" + this.props.index}></div>;
         }
     },
 
     componentDidUpdate: function() {
-        $.plot('#sysrem-' + this.props.index, [this.state.data], {});
+        plot('#sysrem-' + this.props.index, [this.state.data], {});
     },
 
     render: function() {
