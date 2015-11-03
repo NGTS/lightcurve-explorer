@@ -35,10 +35,8 @@ var SysremBasisFunction = React.createClass({
 
     render: function() {
         return (
-            <div className="row">
-                <div className="basis-function col-md-3">
-                {this.content()}
-                </div>
+            <div className="basis-function col-md-3">
+            {this.content()}
             </div>
         );
     }
@@ -47,7 +45,7 @@ var SysremBasisFunction = React.createClass({
 var SysremBasisFunctions = React.createClass({
     render: function() {
         return (
-            <div className="sysrem-basis-functions">
+            <div className="row sysrem-basis-functions">
             <h3>Sysrem basis functions</h3>
             {[0, 1, 2, 3].map(function(index) {
                 return <SysremBasisFunction index={index} />
