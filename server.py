@@ -23,9 +23,6 @@ logger = logging.getLogger(__name__)
 executor = concurrent.futures.ThreadPoolExecutor()
 memory = joblib.Memory(cachedir='.tmp')
 
-filename = 'data/20150911-ng2000-802-custom-flat-high-quality.fits'
-npts_per_bin = 100
-
 def compute_extent(ts, percentile=5):
     '''
     Given a time series, compute the extent.
@@ -40,7 +37,7 @@ def fetch_from_fits(infile, hdu, index):
     index = int(index)
     return infile[hdu][index:index + 1, :].ravel()
 
-def bin_1d(flux, x=None):
+def bin_1d(flux, npts_per_bin, x=None):
     x = x if x is not None else np.arange(flux.size)
     bin_length = int(np.floor(flux.size / npts_per_bin))
     by, be, _ = binned_statistic(x, flux, statistic='mean',
@@ -48,7 +45,7 @@ def bin_1d(flux, x=None):
     return by, (be[:-1] + be[1:]) / 2.
 
 @memory.cache
-def extract_data(filename, npts_per_bin):
+def extract_data(filename, npts_per_bin=None):
     logger.info('Loading data')
     with fitsio.FITS(filename) as infile:
         flux = infile['tamflux'].read()
@@ -66,20 +63,6 @@ def extract_data(filename, npts_per_bin):
     return ind, med_flux, frms
 
 
-def get_lightcurve(hdu, lc_id):
-    with fitsio.FITS(filename) as infile:
-        mjd = fetch_from_fits(infile, 'hjd', lc_id)
-        flux = fetch_from_fits(infile, hdu, lc_id)
-
-    if npts_per_bin is not None:
-        flux, mjd = bin_1d(flux, x=mjd)
-
-    mjd0 = int(mjd.min())
-
-    sc = sigma_clip(flux)
-
-    return (mjd - mjd0)[~sc.mask], flux[~sc.mask]
-
 class BaseHandler(tornado.web.RequestHandler):
     def initialize(self, args, aperture_indexes, ind,
                   frms, med_flux):
@@ -89,10 +72,25 @@ class BaseHandler(tornado.web.RequestHandler):
         self.frms = frms
         self.med_flux = med_flux
 
+        self.npts_per_bin = args.bin
+        self.filename = self.args.filename
+
+    def get_lightcurve(self, hdu, lc_id):
+        with fitsio.FITS(self.filename) as infile:
+            mjd = fetch_from_fits(infile, 'hjd', lc_id)
+            flux = fetch_from_fits(infile, hdu, lc_id)
+
+        flux, mjd = bin_1d(flux, self.npts_per_bin, x=mjd)
+
+        mjd0 = int(mjd.min())
+
+        sc = sigma_clip(flux)
+
+        return (mjd - mjd0)[~sc.mask], flux[~sc.mask]
 
 class IndexHandler(BaseHandler):
     def get(self):
-        self.render('templates/index.html', npts_per_bin=npts_per_bin,
+        self.render('templates/index.html', npts_per_bin=self.npts_per_bin,
                    render_frms=True)
 
 class DetailHandler(BaseHandler):
@@ -120,7 +118,7 @@ class FRMSHandler(BaseHandler):
 
 class LightcurveHandler(BaseHandler):
     def fetch_data(self, hdu, lc_id):
-        mjd, flux = get_lightcurve(hdu, lc_id)
+        mjd, flux = self.get_lightcurve(hdu, lc_id)
         ind = np.isfinite(flux)
         return mjd[ind].astype(float), flux[ind].astype(float)
 
@@ -138,7 +136,7 @@ class LightcurveHandler(BaseHandler):
 
 class MeanCoordinateHandler(BaseHandler):
     def fetch_coordinate(self, coord_type, lc_id):
-        with fitsio.FITS(filename) as infile:
+        with fitsio.FITS(self.filename) as infile:
             value = fetch_from_fits(
                 infile, 'ccd{coord_type}'.format(coord_type=coord_type), lc_id)
         return {'data': float(np.median(value))}
@@ -158,7 +156,7 @@ class CoordinateHandler(BaseHandler):
         else:
             raise RuntimeError("Invalid coordinate type")
 
-        with fitsio.FITS(filename) as infile:
+        with fitsio.FITS(self.filename) as infile:
             mjd = fetch_from_fits(infile, 'hjd', lc_id)
             value = fetch_from_fits(infile, hdu, lc_id)
 
@@ -179,7 +177,7 @@ class CoordinateHandler(BaseHandler):
 
 class ObjectNameHandler(BaseHandler):
     def fetch_obj_id(self, lc_id):
-        with fitsio.FITS(filename) as infile:
+        with fitsio.FITS(self.filename) as infile:
             cat = infile['catalogue'].read()
 
         return {'data': cat['OBJ_ID'][int(lc_id)].decode('utf-8')}
@@ -194,7 +192,7 @@ class SysremBasisHandler(BaseHandler):
     def fetch_basis_function(self, basis_id):
         basis_id = int(basis_id)
 
-        with fitsio.FITS(filename) as infile:
+        with fitsio.FITS(self.filename) as infile:
             imagelist = infile['imagelist'].read()
 
         mjd = imagelist['TMID']
@@ -210,7 +208,7 @@ class SysremBasisHandler(BaseHandler):
 
 class EquatorialCoordinateHandler(BaseHandler):
     def fetch_coordinates(self, lc_id):
-        with fitsio.FITS(filename) as infile:
+        with fitsio.FITS(self.filename) as infile:
             cat_entry = infile['catalogue'][lc_id:lc_id + 1][0]
 
         ra, dec = float(cat_entry['RA']), float(cat_entry['DEC'])
