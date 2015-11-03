@@ -17,7 +17,7 @@ from scipy.stats import binned_statistic
 import argparse
 
 logging.basicConfig(
-    level='DEBUG', format='[%(asctime)s] %(levelname)8s %(message)s')
+    level='INFO', format='[%(asctime)s] %(levelname)8s %(message)s')
 logger = logging.getLogger(__name__)
 
 executor = concurrent.futures.ThreadPoolExecutor()
@@ -279,6 +279,7 @@ if __name__ == '__main__':
     parser.add_argument('--debug', action='store_true',
                         help='Run the debug server')
     args = parser.parse_args()
+
     if args.verbose:
         logger.setLevel('DEBUG')
     logger.debug(args)
@@ -287,8 +288,8 @@ if __name__ == '__main__':
     ind, med_flux, frms = extract_data(args.filename, npts_per_bin=args.bin)
     aperture_indexes = np.arange(med_flux.size)
 
-    logger.info('Application listening on port %s', args.port)
+    logger.info('Application listening on %s:%s', args.host, args.port)
     application = construct_application(args, ind, med_flux, frms,
                                         aperture_indexes)
-    application.listen(args.port)
+    application.listen(args.port, address=args.host)
     tornado.ioloop.IOLoop().current().start()
