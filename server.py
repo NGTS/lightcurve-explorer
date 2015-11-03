@@ -9,6 +9,8 @@ import concurrent.futures
 import fitsio
 from binmodule import fast_bin
 from astropy.stats import sigma_clip
+from astropy.coordinates import SkyCoord
+from astropy import units as u
 import numpy as np
 import joblib
 from scipy.stats import binned_statistic
@@ -198,6 +200,30 @@ class SysremBasisHandler(tornado.web.RequestHandler):
             self.fetch_basis_function, basis_id)
         self.write(results)
 
+class EquatorialCoordinateHandler(tornado.web.RequestHandler):
+    def fetch_coordinates(self, lc_id):
+        with fitsio.FITS(filename) as infile:
+            cat_entry = infile['catalogue'][lc_id:lc_id + 1][0]
+
+        ra, dec = float(cat_entry['RA']), float(cat_entry['DEC'])
+        coord = SkyCoord(ra * u.degree, dec * u.degree)
+
+        ra_hms = coord.ra.to_string()
+        dec_dms = coord.dec.to_string()
+
+        return {'data': {
+            'ra': '{ra:.5f}'.format(ra=ra),
+            'dec': '{dec:.5f}'.format(dec=dec),
+            'ra_full': float(ra),
+            'dec_full': float(dec),
+            'ra_hms': ra_hms,
+            'dec_dms': dec_dms}}
+
+    @gen.coroutine
+    def get(self, lc_id):
+        lc_id = int(lc_id)
+        results = yield executor.submit(self.fetch_coordinates, lc_id)
+        self.write(results)
 
 
 application = tornado.web.Application([
@@ -211,6 +237,7 @@ application = tornado.web.Application([
     (r'/api/([xy]s)/([0-9]+)', CoordinateHandler),
     (r'/api/obj_id/([0-9]+)', ObjectNameHandler),
     (r'/api/sysrem_basis/([0-9]+)', SysremBasisHandler),
+    (r'/api/coordinates/([0-9]+)', EquatorialCoordinateHandler),
 ], static_path='static', debug=True)
 
 if __name__ == '__main__':
