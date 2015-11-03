@@ -1,8 +1,4 @@
 $(function() {
-    $.getJSON('/api/binning', function(data) {
-        $('#binningvalue').text('Points per bin: ' + data.binning);
-    });
-
     for (var i=0; i<4; i++) {
         $.getJSON('/api/sysrem_basis/' + i, render_sysrem_basis(i));
     }

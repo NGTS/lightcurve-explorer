@@ -8,15 +8,15 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.navigate.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.css" title="" type="text/css" />
-        <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}" title="" type="text/css" />
+        <link rel="stylesheet" href="{{ static_url('main.css') }}" title="" type="text/css" />
     </head>
     <body>
         <div class="container">
             {% block content %}
-            {% endblock content %}
-            <script type="text/javascript" src="{{ url_for('static', filename='functions.js') }}"></script>
+            {% end %}
+            <script type="text/javascript" src="{{ static_url('functions.js') }}"></script>
             {% block js %}
-            {% endblock %}
+            {% end %}
         </body>
     </html>
 
