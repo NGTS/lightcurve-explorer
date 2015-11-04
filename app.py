@@ -41,6 +41,9 @@ def fetch_from_fits(infile, hdu, index):
 
 def bin_1d(flux, npts_per_bin, x=None):
     x = x if x is not None else np.arange(flux.size)
+    if npts_per_bin is None:
+        return flux, x
+
     bin_length = int(np.floor(flux.size / npts_per_bin))
     by, be, _ = binned_statistic(x, flux, statistic='mean',
                                         bins=bin_length)
