@@ -12,6 +12,12 @@ $(function() {
             grid: {
                 clickable: true,
             },
+            zoom: {
+                interactive: true
+            },
+            pan: {
+                interactive: true
+            }
         };
         clear_and_plot('#frmsplot', data, options);
 
