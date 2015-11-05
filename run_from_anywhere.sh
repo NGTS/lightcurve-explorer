@@ -6,7 +6,8 @@ main() {
     BASEDIR="$(readlink -f $(dirname $0))"
     echo "Running from ${BASEDIR}"
 
-    ${BASEDIR}/venv/bin/python ${BASEDIR}/app.py "$@"
+    (cd $BASEDIR
+    ${BASEDIR}/venv/bin/python ${BASEDIR}/app.py "$@")
 }
 
 main "$@"
