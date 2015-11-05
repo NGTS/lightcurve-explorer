@@ -25,15 +25,16 @@ memory = joblib.Memory(cachedir='.tmp')
 
 SKIP = 30
 
-def compute_extent(ts, percentile=5):
+def compute_extent(ts, npoints=10):
     '''
     Given a time series, compute the extent.
 
-    Return the difference between the 100 - `percentile`th and `percentile`th
-    percentiles
+    Return the difference between the average of the first N points, and the
+    last N points
     '''
-    percentiles = np.percentile(ts, [percentile, 100 - percentile])
-    return percentiles[-1] - percentiles[0]
+    beginning = ts[:npoints].mean()
+    end = ts[-npoints:].mean()
+    return end - beginning
 
 def fetch_from_fits(infile, hdu, index):
     index = int(index)
