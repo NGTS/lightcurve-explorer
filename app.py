@@ -12,7 +12,6 @@ from astropy.stats import sigma_clip
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 import numpy as np
-import joblib
 from scipy.stats import binned_statistic
 import argparse
 
@@ -21,7 +20,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 executor = concurrent.futures.ThreadPoolExecutor()
-memory = joblib.Memory(cachedir='.tmp')
 
 SKIP = 30
 
@@ -50,7 +48,6 @@ def bin_1d(flux, npts_per_bin, x=None):
                                         bins=bin_length)
     return by, (be[:-1] + be[1:]) / 2.
 
-@memory.cache
 def extract_data(filename, npts_per_bin=None):
     logger.info('Loading data')
     with fitsio.FITS(filename) as infile:
