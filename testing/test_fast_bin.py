@@ -11,6 +11,12 @@ from binmodule import fast_bin
      np.array([[1, 1], [2, 2]])),
     ((np.array([[1, 3, 1, 3], [2, 4, 2, 4]]), 2),
      np.array([[2, 2], [3, 3]])),
+    ((np.array([[1, 1], [2, 2], [3, 3]]), 2),
+      np.array([[1], [2], [3]])),
+    ((np.array([[1, 1, 1], [2, 2, 2]]), 2),
+     np.array([[1, ], [2, ]])),
+    ((np.array([np.ones(10), np.ones(10) * 2]), 5),
+     np.array([[1, 1], [2, 2]])),
 ])
 def test_fast_bin(input, expected):
     data, bin_size = input
