@@ -9,3 +9,4 @@ exploration/renders/*.html
 images/*
 !images/.gitkeep
 exploration/thumbnails
+testing/.cache
