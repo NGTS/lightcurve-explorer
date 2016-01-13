@@ -13,10 +13,10 @@ $(function() {
                 clickable: true,
             },
             zoom: {
-                interactive: true
+                interactive: false
             },
             pan: {
-                interactive: true
+                interactive: false
             }
         };
         clear_and_plot('#frmsplot', data, options);
