@@ -111,16 +111,14 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def get_lightcurve(self, hdu, lc_id):
         with fitsio.FITS(self.filename) as infile:
-            mjd = fetch_from_fits(infile, 'hjd', lc_id)
             flux = fetch_from_fits(infile, hdu, lc_id)
 
-        flux, mjd = bin_1d(flux, self.npts_per_bin, x=mjd)
-
-        mjd0 = int(mjd.min())
+        flux, binned_frame = bin_1d(flux, self.npts_per_bin)
 
         sc = sigma_clip(flux)
+        usable_flux = flux[~sc.mask]
 
-        return (mjd - mjd0)[~sc.mask], flux[~sc.mask]
+        return (binned_frame.astype(float), usable_flux.astype(float))
 
 class IndexHandler(BaseHandler):
     def get(self):
@@ -152,18 +150,19 @@ class FRMSHandler(BaseHandler):
 
 class LightcurveHandler(BaseHandler):
     def fetch_data(self, hdu, lc_id):
-        mjd, flux = self.get_lightcurve(hdu, lc_id)
+        _, flux = self.get_lightcurve(hdu, lc_id)
         ind = np.isfinite(flux)
-        return mjd[ind].astype(float), flux[ind].astype(float)
+        usable_flux = flux[ind].astype(float)
+        return np.arange(usable_flux.size).astype(float), usable_flux
 
     @gen.coroutine
     def get(self, hdu, lc_id):
-        mjd, flux = yield executor.submit(self.fetch_data, hdu, lc_id)
+        frame, flux = yield executor.submit(self.fetch_data, hdu, lc_id)
         ind = np.isfinite(flux)
         extent = float(flux[ind].ptp())
         frms = float(flux[ind].std() / np.median(flux)) * 1000.
         self.write({
-            'data': list(zip(mjd, flux)),
+            'data': list(zip(frame, flux)),
             'extent': extent,
             'frms': frms,
         })
@@ -191,15 +190,15 @@ class CoordinateHandler(BaseHandler):
             raise RuntimeError("Invalid coordinate type")
 
         with fitsio.FITS(self.filename) as infile:
-            mjd = fetch_from_fits(infile, 'hjd', lc_id)
             value = fetch_from_fits(infile, hdu, lc_id)
 
         sc = sigma_clip(value)
         ind = ~sc.mask
         extent = float(compute_extent(sc[ind]))
+        usable_value = value[ind].astype(float)
         return {
-            'data': list(zip(mjd[ind].astype(float),
-                             value[ind].astype(float))),
+            'data': list(zip(np.arange(usable_value.size).astype(float),
+                             usable_value)),
             'extent': extent,
         }
 
@@ -229,14 +228,14 @@ class SysremBasisHandler(BaseHandler):
         with fitsio.FITS(self.filename) as infile:
             imagelist = infile['imagelist'].read()
 
-        mjd = imagelist['TMID'][SKIP:]
         aj = imagelist['AJ'].T
         try:
             basis = aj[basis_id][SKIP:]
         except IndexError:
             basis = aj
 
-        return {'data': list(zip(mjd.astype(float), basis.astype(float)))}
+        return {'data': list(zip(np.arange(basis.size).astype(float),
+                                 basis.astype(float)))}
 
     @gen.coroutine
     def get(self,  basis_id):
@@ -272,14 +271,15 @@ class EquatorialCoordinateHandler(BaseHandler):
 
 class SkyBackgroundHandler(BaseHandler):
     def fetch_data(self, lc_id):
-        mjd, sky = self.get_lightcurve('skybkg', lc_id)
+        _, sky = self.get_lightcurve('skybkg', lc_id)
         ind = np.isfinite(sky)
-        return mjd[ind].astype(float), sky[ind].astype(float)
+        usable_sky = sky[ind].astype(float)
+        return np.arange(usable_sky.size).astype(float), usable_sky
 
     @gen.coroutine
     def get(self, lc_id):
-        mjd, sky = yield executor.submit(self.fetch_data, lc_id)
-        self.write({'data': list(zip(mjd, sky))})
+        frame, sky = yield executor.submit(self.fetch_data, lc_id)
+        self.write({'data': list(zip(frame, sky))})
 
 def construct_application(args, ind, med_flux, frms, aperture_indexes):
     url_mapping = [
