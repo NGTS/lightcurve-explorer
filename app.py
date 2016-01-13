@@ -76,7 +76,6 @@ def extract_data(filename, npts_per_bin=None, chunksize=1024):
 
         med_flux = np.zeros(napertures, dtype=np.float32)
         frms = np.zeros(napertures, dtype=np.float32)
-        ind = np.zeros(napertures, dtype=bool)
 
         for lcs, start, end in read_lightcurves_chunked(
             hdu, chunksize=chunksize):
@@ -93,6 +92,7 @@ def extract_data(filename, npts_per_bin=None, chunksize=1024):
             med_flux[start:end] = m
             frms[start:end] = f
 
+    ind = np.where((med_flux > 0) & (frms > 0))[0]
     return ind, med_flux, frms
 
 
@@ -230,9 +230,13 @@ class SysremBasisHandler(BaseHandler):
             imagelist = infile['imagelist'].read()
 
         mjd = imagelist['TMID'][SKIP:]
-        aj = imagelist['AJ'].T[basis_id][SKIP:]
+        aj = imagelist['AJ'].T
+        try:
+            basis = aj[basis_id][SKIP:]
+        except IndexError:
+            basis = aj
 
-        return {'data': list(zip(mjd.astype(float), aj.astype(float)))}
+        return {'data': list(zip(mjd.astype(float), basis.astype(float)))}
 
     @gen.coroutine
     def get(self,  basis_id):
