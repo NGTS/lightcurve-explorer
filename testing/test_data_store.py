@@ -52,8 +52,9 @@ class TestDataStoreConstruction(object):
         assert np.all(DataStore.bin_1d(arr, 2)[0] == np.array([1, 2]))
 
     def test_bin_2d(self):
-        arr = np.array([[1, 1, 1, 1], [2, 2, 2, 2]])
-        assert np.all(DataStore.bin_2d(arr, 2) == np.array([[1, 1], [2, 2]]))
+        arr = np.array([[1, 1, 1, 1, 1, 1, 1], [2, 2, 2, 2, 2, 2, 2]])
+        assert np.all(DataStore.bin_2d(arr, 2) == np.array([[1, 1, 1],
+                                                            [2, 2, 2]]))
 
     def test_get_and_bin(self):
         store = DataStore.from_filename(self.fits_filename)
