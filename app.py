@@ -36,9 +36,14 @@ def compute_extent(ts, npoints=10):
     end = ts[-npoints:].mean()
     return end - beginning
 
+def fetch_from_hdu(hdu, index):
+    index = int(index)
+    return hdu[index:index + 1, SKIP:].ravel()
+
 def fetch_from_fits(infile, hdu, index):
     index = int(index)
-    return infile[hdu][index:index + 1, SKIP:].ravel()
+    return fetch_from_hdu(infile[hdu], index)
+
 
 def bin_1d(flux, npts_per_bin, x=None):
     x = x if x is not None else np.arange(flux.size)
