@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import warnings
+warnings.filterwarnings('ignore', r'.*')
 import tornado.ioloop
 import tornado.web
 from tornado import gen
