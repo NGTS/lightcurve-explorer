@@ -44,6 +44,18 @@ def fetch_from_fits(infile, hdu, index):
     index = int(index)
     return fetch_from_hdu(infile[hdu], index)
 
+def read_lightcurves_chunked(hdu, chunksize=1024):
+    napertures = hdu.get_info()['dims'][0]
+    nchunks = napertures // chunksize + 1
+    logger.debug('Reading in %d chunks of %d apertures each',
+                 nchunks, chunksize)
+
+    for idx in range(nchunks):
+        start = idx * chunksize
+        end = start + chunksize
+        data = hdu[start:end, :]
+        yield data, start, end
+
 
 def bin_1d(flux, npts_per_bin, x=None):
     x = x if x is not None else np.arange(flux.size)
@@ -55,22 +67,34 @@ def bin_1d(flux, npts_per_bin, x=None):
                                         bins=bin_length)
     return by, (be[:-1] + be[1:]) / 2.
 
-def extract_data(filename, npts_per_bin=None):
+def extract_data(filename, npts_per_bin=None, chunksize=1024):
     logger.info('Loading data')
     with fitsio.FITS(filename) as infile:
-        flux = infile[args.hdu][:, SKIP:]
+        logger.debug('SLOWWWWWW')
+        hdu = infile[args.hdu]
+        napertures = hdu.get_info()['dims'][0]
 
-    sc_flux = sigma_clip(flux, axis=1)
+        med_flux = np.zeros(napertures, dtype=np.float32)
+        frms = np.zeros(napertures, dtype=np.float32)
+        ind = np.zeros(napertures, dtype=bool)
 
-    if npts_per_bin is not None:
-        sc_flux = fast_bin(sc_flux, npts_per_bin)
+        for lcs, start, end in read_lightcurves_chunked(
+            hdu, chunksize=chunksize):
+            logger.debug('Reading apertures %d to %d', start, end)
+            sc = sigma_clip(lcs, axis=1)
 
-    med_flux = np.median(sc_flux, axis=1)
-    mad_flux = np.median(np.abs(sc_flux - med_flux[:, np.newaxis]), axis=1)
-    std_flux = 1.48 * mad_flux
-    frms = std_flux / med_flux
-    ind = np.where((med_flux > 0) & (frms > 0))[0]
+            if npts_per_bin is not None:
+                sc = fast_bin(sc, npts_per_bin)
+
+            m = np.median(sc, axis=1)
+            mad_flux = np.median(np.abs(sc - m[:, np.newaxis]), axis=1)
+            std_flux = 1.48 * mad_flux
+            f = std_flux / m
+            med_flux[start:end] = m
+            frms[start:end] = f
+
     return ind, med_flux, frms
+
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -295,6 +319,9 @@ if __name__ == '__main__':
                         help='Port to listen to')
     parser.add_argument('--host', required=False, default='0.0.0.0',
                         help='Host to listen to')
+    parser.add_argument('-c', '--chunksize', type=int,
+                        help='Read lightcurves in chunks', required=False,
+                        default=1024)
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('--debug', action='store_true',
                         help='Run the debug server')
@@ -305,7 +332,8 @@ if __name__ == '__main__':
     logger.debug(args)
 
     logger.info('Skipping the first %s points', SKIP)
-    ind, med_flux, frms = extract_data(args.filename, npts_per_bin=args.bin)
+    ind, med_flux, frms = extract_data(args.filename, npts_per_bin=args.bin,
+                                      chunksize=args.chunksize)
     aperture_indexes = np.arange(med_flux.size)
 
     logger.info('Application listening on %s:%s', args.host, args.port)
