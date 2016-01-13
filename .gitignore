@@ -10,3 +10,4 @@ images/*
 !images/.gitkeep
 exploration/thumbnails
 testing/.cache
+*.pyc
